@@ -1,4 +1,5 @@
 const TABS = [
+  { id: "wadsworth", label: "AI Assistant (Wadsworth)" },
   { id: "home", label: "Home" },
   { id: "equations", label: "Equations" },
   { id: "speedfeed", label: "Speed & Feed Calculator" },

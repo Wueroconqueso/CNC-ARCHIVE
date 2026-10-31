@@ -6,8 +6,10 @@ import SpeedFeedTab from "./tabs/SpeedFeedTab";
 import GCodesTab from "./tabs/GCodesTab";
 import MCodesTab from "./tabs/MCodesTab";
 import TappingTab from "./tabs/TappingTab";
+import WadsworthTab from "./tabs/WadsworthTab";
 
 const TAB_COMPONENTS = {
+  wadsworth: WadsworthTab,
   home: HomeTab,
   equations: EquationsTab,
   speedfeed: SpeedFeedTab,
