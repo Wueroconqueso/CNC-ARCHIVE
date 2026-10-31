@@ -1,5 +1,5 @@
 const TABS = [
-  { id: "notes", label: "Notes" },
+  { id: "home", label: "Home" },
   { id: "equations", label: "Equations" },
   { id: "speedfeed", label: "Speed & Feed Calculator" },
   { id: "gcodes", label: "G-Codes" },
@@ -10,12 +10,12 @@ export default function Sidebar({ active, onSelect }) {
   return (
     <div
       style={{
-        width: 200,
-        flexShrink: 0,
-        borderRight: "1px solid #e5e7eb",
-        padding: "16px 8px",
-        textAlign: "left",
+        width: 220,
+        height: "100%",
+        background: "white",
+        padding: "60px 8px 16px",
         boxSizing: "border-box",
+        overflowY: "auto",
       }}
     >
       <div style={{ fontWeight: "bold", fontSize: 14, padding: "0 8px 12px", color: "#888" }}>
