@@ -4,6 +4,7 @@ const TABS = [
   { id: "speedfeed", label: "Speed & Feed Calculator" },
   { id: "gcodes", label: "G-Codes" },
   { id: "mcodes", label: "M-Codes" },
+  { id: "tapping", label: "Tapping" },
 ];
 
 export default function Sidebar({ active, onSelect }) {

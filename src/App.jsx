@@ -5,6 +5,7 @@ import EquationsTab from "./tabs/EquationsTab";
 import SpeedFeedTab from "./tabs/SpeedFeedTab";
 import GCodesTab from "./tabs/GCodesTab";
 import MCodesTab from "./tabs/MCodesTab";
+import TappingTab from "./tabs/TappingTab";
 
 const TAB_COMPONENTS = {
   home: HomeTab,
@@ -12,6 +13,7 @@ const TAB_COMPONENTS = {
   speedfeed: SpeedFeedTab,
   gcodes: GCodesTab,
   mcodes: MCodesTab,
+  tapping: TappingTab,
 };
 
 export default function App() {

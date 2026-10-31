@@ -5,10 +5,17 @@ function todayStr() {
   return new Date().toISOString().split("T")[0];
 }
 
+function dayOfYear() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  return Math.floor((now - start) / 86400000);
+}
+
 export default function HomeTab() {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [tip, setTip] = useState("");
   const today = todayStr();
 
   useEffect(() => {
@@ -26,6 +33,23 @@ export default function HomeTab() {
       cancelled = true;
     };
   }, [today]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.from("tips").select("content").order("id");
+      if (error) {
+        console.error(error);
+        return;
+      }
+      if (data && data.length && !cancelled) {
+        setTip(data[dayOfYear() % data.length].content);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function save() {
     setSaving(true);
@@ -72,6 +96,21 @@ export default function HomeTab() {
       >
         {saving ? "Saving..." : "Save"}
       </button>
+
+      {tip && (
+        <div
+          style={{
+            marginTop: 32,
+            background: "#f9fafb",
+            border: "1px solid #e5e7eb",
+            borderRadius: 8,
+            padding: 16,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: "bold", color: "#888", marginBottom: 6 }}>TIP OF THE DAY</div>
+          <p style={{ margin: 0, fontSize: 14, color: "#333" }}>{tip}</p>
+        </div>
+      )}
     </div>
   );
 }
