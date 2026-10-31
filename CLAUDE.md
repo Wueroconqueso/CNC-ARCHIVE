@@ -23,8 +23,10 @@ complex over time.
   awake is a future task, not yet implemented.
 - **2026-10-31:** found the project paused (not deleted — data intact, 6 entries). Restored
   it via the Supabase Management API's `/v1/projects/{ref}/restore` endpoint using a
-  temporary personal access token (created, used, then deleted same session). Confirms
-  the cron-ping task above is worth doing so this doesn't keep happening.
+  temporary personal access token (created, used, then deleted same session).
+- **FIXED 2026-10-31:** added `.github/workflows/keep-alive.yml` — pings the database
+  every 3 days via GitHub Actions cron so it won't pause again. Tested live, works.
+  Committed + pushed to main.
 
 ## Notes
 (Add deeper technical notes, decisions, and gotchas here as they come up.)
