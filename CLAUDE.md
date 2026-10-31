@@ -37,8 +37,35 @@ complex over time.
     block before the actual text block — grab the block where `type === "text"`,
     not `content[0]`, or replies come back empty.
   - Not yet done: giving Wadsworth a tool to search the app's own stored data
-    (daily notes, tips) — that's the agreed next step. After that: a Mastercam PDF
-    knowledge base (storage + indexing), once Isaac has PDFs ready to hand over.
+    (daily notes, tips).
+- **App icon — fixed 2026-10-31:** the configured PWA/favicon icon was leftover Vite
+  template cruft (a sprite sheet of social icons that renders blank on its own) —
+  that's why the app had no photo when installed. Replaced with a real icon (simple
+  end-mill mark, public/icon.svg + generated PNG sizes). Isaac had to uninstall and
+  reinstall the PWA on his phone to pick up the new icon.
+- **IN PROGRESS, resume here — Mastercam PDF knowledge base (started 2026-10-31):**
+  Goal: upload PDFs, extract + chunk + save the text, and have Wadsworth search that
+  saved text to answer Mastercam questions grounded in the actual docs. Not real
+  "training" — no model gets retrained, it's upload → extract → save → search →
+  hand relevant chunks to Claude as context. Decided to start with plain Postgres
+  full-text search (keyword-based, free, deterministic, no second API key) rather
+  than semantic/embedding search (better fuzzy matching, but needs a separate
+  embeddings API — can upgrade to this later if keyword search isn't finding the
+  right stuff).
+  - Step 1 (in progress, confirm done before continuing): Isaac creating a public
+    Supabase Storage bucket named `mastercam-pdfs`, and running
+    `mastercam_chunks_migration.sql` (saved in repo root) in the SQL Editor — creates
+    a `mastercam_chunks` table with a generated `tsvector` column + GIN index for
+    full-text search, RLS disabled (matches the rest of this app's tables).
+  - Step 2 (not started): build a PDF upload tab — extract text client-side (need to
+    add a PDF-parsing library, e.g. pdfjs-dist, not yet installed), chunk it, upload
+    the original PDF to the `mastercam-pdfs` bucket, insert chunks into
+    `mastercam_chunks`.
+  - Step 3 (not started): update the `wadsworth-chat` Edge Function to run a
+    full-text search against `mastercam_chunks` for the user's question and include
+    the top matches as context before calling Claude.
+  - Isaac doesn't have PDFs ready yet — building the pipeline now, he'll add real
+    files once it works.
 - Tip of the Day: `tips` table, rotates by day-of-year, no cron/internet needed.
   Seeded with 10 general tips; Isaac has his own (messy) advice data he wants
   incorporated eventually — he'll send it when ready, not sent yet.
