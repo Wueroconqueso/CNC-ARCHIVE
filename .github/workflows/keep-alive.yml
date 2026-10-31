@@ -1,0 +1,20 @@
+name: Keep Supabase Project Alive
+
+# Supabase's free tier pauses a project after 7 days with no activity. This
+# pings the database every 3 days so it never goes idle long enough to pause.
+# Uses the publishable (anon) key, which is already public in the app's own
+# source code (src/supabase.js) — safe to have here too, not a secret.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 12 */3 * *'
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping entries table
+        run: |
+          curl -sf "https://lwinvwocxtstvyhkicpv.supabase.co/rest/v1/entries?select=id&limit=1" \
+            -H "apikey: sb_publishable_-aKK1zDOzEd0sQTymO1a4Q_aFR8tvb9"
