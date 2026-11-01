@@ -86,8 +86,60 @@ complex over time.
   - Step 3 (not started): update the `wadsworth-chat` Edge Function to run a
     full-text search against `mastercam_chunks` for the user's question and include
     the top matches as context before calling Claude.
-  - Isaac doesn't have real PDFs ready yet — building/testing the pipeline with a
-    synthetic one, he'll add real files once it's confirmed working.
+  - **Real PDF ingestion underway (started 2026-10-31):** Isaac's workflow is to
+    paste/attach PDFs into the Claude Code chat **one at a time**, and only wants a
+    receipt confirmation ("got it" / page count / lesson vs. print) for each —
+    no ingestion action until he explicitly says to proceed. Ingested so far via
+    `scripts/ingest_pdf.mjs` from `C:\Users\Isaac\Downloads`: Mill-Lesson-16,
+    Mill-Lesson-15 (+ExA/ExB prints), Mill-Lesson-14 (+ExA/ExB), Mill-Lesson-13
+    (+ExA/ExB), Mill-Lesson-12 (+ExA/ExB), Mill-Lesson-11 (+ExA/ExB),
+    Mill-Lesson-10 (+ExA/ExB), Mill-Lesson-9 (+ExA/ExB). Also received (not yet
+    ingested — general class reference, not lesson-specific):
+    Setting-The-Environment.pdf, Surface Toolpath Overview-2024.pdf.
+  - **Lessons 1-8 bulk-ingested 2026-10-31** from Isaac's 2TB backup SSD (H: drive,
+    `H:\Backup 7-19-25\Downloads\`) at his request, since clean copies of these
+    predate the one-at-a-time chat workflow and were already sitting on the backup
+    drive. Deduped first (that folder had multiple re-download copies of several
+    files, e.g. `Mill-Lesson-1 (1).pdf`/`(2).pdf` — confirmed byte-identical by file
+    size before picking one), checked each filename against `mastercam_chunks`
+    (all were new), then ingested via `scripts/ingest_pdf.mjs`. Ingested:
+    Mill-Lesson-1.pdf (10 chunks) + ex-1a/ex-1b (1 chunk each), Mill-Lesson-2.pdf
+    (18) + ex-2a/ex-2b (1 each), Mill-Lesson-3.pdf (26) + ex-3a/ex-3b (1 each),
+    Mill-Lesson-4.pdf (26) + ex-4a/ex-4b (1 each), Mill-Lesson-5.pdf (39) +
+    ex-5a/ex-5b (1 each), Mill-Lesson-6.pdf (21, no exercise prints found for this
+    one), Mill-Lesson-7- New.pdf (38 — note the odd filename with "- New" in it;
+    there was no plain Mill-Lesson-7.pdf, this was the only Lesson 7 main file in
+    the folder) + ex-7a/ex-7b (1 each), Mill-Lesson-7B.pdf (48, separate lesson
+    track from Lesson 7, not a duplicate) + Exercise-1/Exercise-2 (1 each),
+    Mill-Lesson-8.pdf (60) + ex-8a/ex-8b (1 each). 23 files total, all new, nothing
+    skipped as already-present.
+    - These 4 extra course PDFs from the same folder were flagged in this first
+      pass (not the Lesson 1-8 pattern) then **ingested 2026-11-01** on Isaac's
+      go-ahead: `FBM-Lesson-1.pdf` (17 chunks), `Mill Advanced Lesson 2.pdf` (12),
+      `WCS-Lesson-1.pdf` (9), `Solids-Lesson-4-ex-A.pdf` (1).
+    - Still not ingested — `Mill-Lesson-7B.SLDPRT`, `Mill-Lesson-7B-ExA.SLDPRT`,
+      `Mill-Lesson-7B-ExB.SLDPRT` (SolidWorks part files for Lesson 7B) — can't be
+      ingested, same solid-file limitation noted below.
+  - **Gotcha found 2026-10-31:** before re-ingesting a file Isaac sends, check
+    `mastercam_chunks` for existing rows with that filename first (`ingest_pdf.mjs`
+    has no dedup — re-running it on an already-ingested file creates duplicate
+    chunk rows under a new timestamped storage_path). Query:
+    `.../rest/v1/mastercam_chunks?select=filename,chunk_index&filename=eq.<name>`.
+  - **Limitation noted 2026-10-31:** the pipeline (both MastercamTab.jsx and
+    ingest_pdf.mjs) only extracts text from PDFs via pdfjs-dist. It can NOT ingest
+    Mastercam solid files (.mcam, proprietary binary, no extractable text) or STL
+    files (mesh data, no text). If Isaac wants those referenceable later, that's a
+    different feature — store as an attachment only (upload to bucket, skip
+    text-extraction/chunking) so Wadsworth can point to the file, not reason about
+    its contents. Not built, not requested yet.
+  - **REMOVED 2026-10-31:** the per-document "Remove" delete button/handler in
+    MastercamTab.jsx — Isaac wants no delete option in the app for ingested PDFs.
+    Deletion, if ever needed, should happen directly in Supabase, not via the UI.
+  - Isaac also has a large personal/messy backlog of CNC notes and advice he wants
+    compiled in eventually (separate from the Mastercam PDF library) — not sent
+    yet, no format decided. Likely candidate: either folded into the existing
+    `tips` table (Tip of the Day) or a new table/section once he sends it — revisit
+    when he actually sends the material rather than designing for it now.
 - Tip of the Day: `tips` table, rotates by day-of-year, no cron/internet needed.
   Seeded with 10 general tips; Isaac has his own (messy) advice data he wants
   incorporated eventually — he'll send it when ready, not sent yet.

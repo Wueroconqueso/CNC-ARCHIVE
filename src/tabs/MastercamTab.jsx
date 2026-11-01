@@ -116,23 +116,6 @@ export default function MastercamTab() {
     }
   }
 
-  async function handleDelete(filename) {
-    if (!confirm(`Remove "${filename}" and all its saved chunks?`)) return;
-
-    const { data: chunkRows } = await supabase
-      .from("mastercam_chunks")
-      .select("storage_path")
-      .eq("filename", filename)
-      .limit(1);
-    const storagePath = chunkRows?.[0]?.storage_path;
-
-    await supabase.from("mastercam_chunks").delete().eq("filename", filename);
-    if (storagePath) {
-      await supabase.storage.from(BUCKET).remove([storagePath]);
-    }
-    loadDocs();
-  }
-
   return (
     <div>
       <h1 style={{ fontSize: 28, fontWeight: "bold", marginBottom: 4 }}>Mastercam</h1>
@@ -190,18 +173,6 @@ export default function MastercamTab() {
                 <div style={{ fontSize: 14 }}>{d.filename}</div>
                 <div style={{ fontSize: 12, color: "#999" }}>{d.count} chunks</div>
               </div>
-              <button
-                onClick={() => handleDelete(d.filename)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#dc2626",
-                  cursor: "pointer",
-                  fontSize: 13,
-                }}
-              >
-                Remove
-              </button>
             </div>
           ))}
         </div>
