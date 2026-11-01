@@ -23,6 +23,26 @@ function chunkText(text) {
   return chunks.filter((c) => c.length > 0);
 }
 
+// Orders documents by lesson number (so Lesson 2 comes before Lesson 10,
+// unlike plain alphabetical sorting), with each lesson's exercise prints
+// grouped right after its main file.
+function lessonSortKey(filename) {
+  const m = filename.match(/lesson[\s-]*(\d+)([a-z]?)/i);
+  const number = m ? parseInt(m[1], 10) : Infinity;
+  const suffix = m ? m[2].toUpperCase() : "";
+  const isMainFile = /lesson[\s-]*\d+[a-z]?\.pdf$/i.test(filename);
+  return { number, suffix, isMainFile };
+}
+
+function compareDocs(a, b) {
+  const ka = lessonSortKey(a.filename);
+  const kb = lessonSortKey(b.filename);
+  if (ka.number !== kb.number) return ka.number - kb.number;
+  if (ka.suffix !== kb.suffix) return ka.suffix.localeCompare(kb.suffix);
+  if (ka.isMainFile !== kb.isMainFile) return ka.isMainFile ? -1 : 1;
+  return a.filename.localeCompare(b.filename);
+}
+
 async function extractText(file) {
   // Loaded on demand — pdfjs-dist is large (~2MB with its worker) and most
   // tabs never touch a PDF, so it shouldn't be in the app's main bundle.
@@ -70,11 +90,13 @@ export default function MastercamTab() {
         byFile[row.filename].count += 1;
       }
       setDocs(
-        Object.entries(byFile).map(([filename, { count, storagePath }]) => ({
-          filename,
-          count,
-          url: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(storagePath)}`,
-        }))
+        Object.entries(byFile)
+          .map(([filename, { count, storagePath }]) => ({
+            filename,
+            count,
+            url: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(storagePath)}`,
+          }))
+          .sort(compareDocs)
       );
     }
     setLoadingDocs(false);
