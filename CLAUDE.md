@@ -83,9 +83,37 @@ complex over time.
     - **Next action when resuming:** confirm both SQL pastes are done, then rerun
       `node test_mastercam_upload.mjs` (needs `npm run dev` running first) to verify
       the fix before bothering Isaac again.
-  - Step 3 (not started): update the `wadsworth-chat` Edge Function to run a
-    full-text search against `mastercam_chunks` for the user's question and include
-    the top matches as context before calling Claude.
+  - **Step 3 (DONE, deployed 2026-11-01):** `wadsworth-chat` Edge Function now runs
+    a Postgres full-text search against `mastercam_chunks` using the user's
+    message before calling Claude. Up to 5 matching chunks get appended to the
+    system prompt as context, with instructions to cite the filename/lesson and
+    ignore the excerpts if they're not actually relevant. Uses Supabase's
+    auto-injected `SUPABASE_URL`/`SUPABASE_ANON_KEY` env vars — no new secret
+    needed. Deployed via dashboard paste (same as always — CLI still not linked
+    for this project).
+    - **First version used `plainto_tsquery` (AND all words) — found broken via
+      live testing, fixed same day.** A strict AND match meant a question that
+      happened to include an incidental word not present in the right chunk
+      (e.g. "Mill-Lesson-9" — the literal digit "9" didn't tokenize cleanly next
+      to page-number suffixes like "Mill-Lesson-9-3" in the PDF text) would
+      return zero matches even though the actual answer was sitting right there.
+      **Fixed** by adding a `search_mastercam_chunks(search_query, match_limit)`
+      Postgres function (`mastercam_search_function_migration.sql`, run via the
+      Supabase SQL editor) that flips `plainto_tsquery`'s ANDs to ORs and ranks
+      results by how many words matched (`ts_rank`), instead of requiring every
+      word to match. The Edge Function now calls this via Supabase RPC
+      (`/rest/v1/rpc/search_mastercam_chunks`) instead of a raw PostgREST filter.
+      Verified live — the exact question that failed before now correctly pulls
+      Mill-Lesson-9's real tool spec (0.375" bull end mill, 0.0625" corner
+      radius) and even flagged a real mix-up risk against Mill-Lesson-12's
+      similar-but-different tool (0.031" corner radius) on its own.
+    - Known remaining tradeoff: still plain keyword search (now OR+ranked, not
+      semantic), so a question using very different words than the PDF text
+      could still miss — upgrade path if that becomes a real problem is
+      semantic/embedding search, which needs a separate API key and a
+      per-query cost. Isaac's stated usage pattern is asking about topics/
+      toolpaths/settings rather than lesson numbers by name, which this
+      handles well.
   - **Real PDF ingestion underway (started 2026-10-31):** Isaac's workflow is to
     paste/attach PDFs into the Claude Code chat **one at a time**, and only wants a
     receipt confirmation ("got it" / page count / lesson vs. print) for each —
@@ -120,6 +148,35 @@ complex over time.
     - Still not ingested — `Mill-Lesson-7B.SLDPRT`, `Mill-Lesson-7B-ExA.SLDPRT`,
       `Mill-Lesson-7B-ExB.SLDPRT` (SolidWorks part files for Lesson 7B) — can't be
       ingested, same solid-file limitation noted below.
+  - **INCIDENT 2026-11-01 — Lessons 9-15 (+11B) vanished from the database, then
+    re-ingested:** while wiring up Wadsworth's full-text search (see Step 3 below),
+    testing showed 0 chunks for any Lesson 9-15/11B filename, while Lesson 16,
+    Lessons 1-8, and the 4 extra course PDFs were all still intact. Likely cause:
+    the old per-document "Remove" delete button in MastercamTab.jsx (removed in
+    code 2026-10-31 but not actually deployed/pushed until later that session) was
+    still live in production the whole time Lessons 9-16 were being ingested —
+    if Isaac opened the app and clicked Remove on any of them during that window,
+    this is exactly the result it'd produce. Not confirmed, but fits the pattern
+    exactly (everything ingested before the delete button was pushed out is what's
+    missing). Fixed: re-ingested all of it from a clean canonical copy found on the
+    2TB backup SSD at `H:\Sync\MASTER MACHINE FILE\ALL\Mastercam 3D course\
+    MasterCam Practice!!!!!\3D 2026\Lesson N\Files\` (one lesson per folder —
+    better source than Downloads, which was missing several of these main lesson
+    files). Verified each file's title/topic against the original receipts before
+    re-ingesting (all matched; page counts were off by exactly 1 from the original
+    receipts across the board — a numbering-convention difference, not a content
+    mismatch). Re-ingested: Mill-Lesson-9.pdf (28 chunks) + ExA/ExB (1 each),
+    Mill-Lesson-10.pdf (26) + ExA/ExB (1 each), Mill-Lesson-11.pdf (23) + ExA/ExB
+    (1 each), Mill-Lesson-11B.pdf (18), Mill-Lesson-12.pdf (36, source file on disk
+    was misnamed `Mill-Lesson-12..pdf` with a double dot — copied to a clean
+    filename before ingesting so the DB entry is consistent) + ExA/ExB (1 each),
+    Mill-Lesson-13.pdf (29) + ExA/ExB (1 each), Mill-Lesson-14.pdf (32) + ExA/ExB
+    (1 each), Mill-Lesson-15.pdf (27, no separate exercise prints — same as
+    originally). 50 distinct filenames in the DB total now. The delete button is
+    gone from the live app as of the push earlier in this session, so this
+    shouldn't be able to happen again — but there's no undo/trash, so if it ever
+    needs to come back, add a soft-delete (archived flag) rather than a hard
+    delete button.
   - **Gotcha found 2026-10-31:** before re-ingesting a file Isaac sends, check
     `mastercam_chunks` for existing rows with that filename first (`ingest_pdf.mjs`
     has no dedup — re-running it on an already-ingested file creates duplicate
