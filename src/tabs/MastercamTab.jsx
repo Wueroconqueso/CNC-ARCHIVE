@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "../supabase";
+import { supabase, SUPABASE_URL } from "../supabase";
 
 const BUCKET = "mastercam-pdfs";
 const CHUNK_SIZE = 1500; // characters per chunk — rough, not token-exact
@@ -59,16 +59,23 @@ export default function MastercamTab() {
     setLoadingDocs(true);
     const { data, error } = await supabase
       .from("mastercam_chunks")
-      .select("filename, chunk_index")
+      .select("filename, chunk_index, storage_path")
       .order("filename");
     if (error) {
       console.error(error);
     } else {
-      const counts = {};
+      const byFile = {};
       for (const row of data) {
-        counts[row.filename] = (counts[row.filename] || 0) + 1;
+        if (!byFile[row.filename]) byFile[row.filename] = { count: 0, storagePath: row.storage_path };
+        byFile[row.filename].count += 1;
       }
-      setDocs(Object.entries(counts).map(([filename, count]) => ({ filename, count })));
+      setDocs(
+        Object.entries(byFile).map(([filename, { count, storagePath }]) => ({
+          filename,
+          count,
+          url: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(storagePath)}`,
+        }))
+      );
     }
     setLoadingDocs(false);
   }
@@ -120,8 +127,8 @@ export default function MastercamTab() {
     <div>
       <h1 style={{ fontSize: 28, fontWeight: "bold", marginBottom: 4 }}>Mastercam</h1>
       <p style={{ color: "#666", marginBottom: 24 }}>
-        Upload Mastercam PDFs — they get stored and broken into searchable text. Wadsworth will be
-        able to search this once wired up.
+        Upload Mastercam PDFs — they get stored and broken into searchable text that Wadsworth can
+        search and reference.
       </p>
 
       <input
@@ -173,6 +180,20 @@ export default function MastercamTab() {
                 <div style={{ fontSize: 14 }}>{d.filename}</div>
                 <div style={{ fontSize: 12, color: "#999" }}>{d.count} chunks</div>
               </div>
+              <a
+                href={d.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: 13,
+                  color: "#1e3a8a",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Open PDF
+              </a>
             </div>
           ))}
         </div>
