@@ -13,7 +13,21 @@ complex over time.
 - Deployed on Vercel
 - PWA — installed on Isaac's phone and desktop
 
-## Status / backlog (as of 2026-10-31 — building out into a bigger app, brick by brick)
+## Status / backlog (as of 2026-11-01 — building out into a bigger app, brick by brick)
+- **Session end state, 2026-11-01 — everything below is live and working:**
+  Mastercam knowledge base is complete (50 files — all of Mill-Lessons 1-16
+  plus 7B/11B and 4 extra course PDFs — ingested, searchable, openable from
+  the app, sorted by lesson number). Wadsworth answers grounded in that
+  library via a working search function (OR+ranked, not strict AND — see the
+  Step 3 entry below for why that matters). UI pass done: full-width layout,
+  gold hamburger icon, navy color scheme, no delete option anywhere in the
+  Mastercam tab. Everything in this paragraph is committed and pushed to
+  `main`. **Known gap, not yet built:** Wadsworth's search only covers the
+  Mastercam PDFs — M-Codes/G-Codes (hardcoded, not in the database) and
+  daily_notes/tips (in the database but not wired into search) aren't
+  searchable by Wadsworth yet. Isaac knows this and said to revisit later,
+  not now. **Also pending:** Isaac's personal/messy CNC notes backlog —
+  he hasn't sent it yet, no format decided.
 - App restructured: collapsible left-sidebar nav (closed by default, opens via a ☰
   button top-left, closes on picking a tab). Tabs so far: Wadsworth (AI assistant),
   Home (daily note + tip of the day), Equations, Speed & Feed Calculator, G-Codes,
@@ -56,12 +70,16 @@ complex over time.
     table created (tsvector + GIN index for full-text search, RLS disabled) via
     `mastercam_chunks_migration.sql`. Verified both exist (empty REST query returned
     200/[]).
-  - Step 2 (DONE, code pushed, but BLOCKED on a missed SQL step — see below): built
-    src/tabs/MastercamTab.jsx — upload a PDF, extract text client-side (pdfjs-dist,
-    dynamically imported so its ~2MB doesn't bloat every page load), chunk it
-    (~1500 chars, break on paragraph/sentence boundaries), upload original to the
-    bucket, insert chunks into `mastercam_chunks`. Has a document list with chunk
-    counts + remove button.
+  - Step 2 (DONE — the SQL blockers below were both resolved later the same
+    session): built src/tabs/MastercamTab.jsx — upload a PDF, extract text
+    client-side (pdfjs-dist, dynamically imported so its ~2MB doesn't bloat
+    every page load), chunk it (~1500 chars, break on paragraph/sentence
+    boundaries), upload original to the bucket, insert chunks into
+    `mastercam_chunks`. Document list shows chunk counts, an "Open PDF" link
+    per document (added 2026-11-01), and is sorted by lesson number (added
+    2026-11-01) rather than alphabetically. **No delete/remove option** —
+    removed 2026-10-31 at Isaac's request; any deletion happens directly in
+    Supabase now.
   - **Tested with Playwright before asking Isaac to touch it** (set up a local
     automated browser test — dev server + playwright, installed locally with
     `--no-save`, not committed; test script at
@@ -73,16 +91,13 @@ complex over time.
       writes still need their own RLS policy on `storage.objects`, scoped by
       `bucket_id`. Fix SQL saved at storage_policy_migration.sql (adds
       select/insert/delete policies scoped to just `mastercam-pdfs`, doesn't touch
-      other buckets like Relicwise's `relicwise-videos`). **Isaac needs to run this
-      — not yet confirmed done.**
-    - Also surfaced in the same test: the `tips` table genuinely does not exist
+      other buckets like Relicwise's `relicwise-videos`). **Confirmed run —
+      ingestion has worked for 50+ files since.**
+    - Also surfaced in the same test: the `tips` table genuinely did not exist
       (confirmed via direct REST call, 404) — the migration from the Tip of the Day
-      build earlier got missed somehow, despite being given at the time. It fails
-      silently in the UI (no tip shows, no visible error). Re-sent
-      `tips_migration.sql` contents to Isaac. **Also not yet confirmed done.**
-    - **Next action when resuming:** confirm both SQL pastes are done, then rerun
-      `node test_mastercam_upload.mjs` (needs `npm run dev` running first) to verify
-      the fix before bothering Isaac again.
+      build earlier got missed somehow, despite being given at the time. Re-sent
+      `tips_migration.sql` contents to Isaac. **Confirmed run — Tip of the Day
+      works on the Home tab now.**
   - **Step 3 (DONE, deployed 2026-11-01):** `wadsworth-chat` Edge Function now runs
     a Postgres full-text search against `mastercam_chunks` using the user's
     message before calling Claude. Up to 5 matching chunks get appended to the
