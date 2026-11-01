@@ -52,20 +52,42 @@ complex over time.
   than semantic/embedding search (better fuzzy matching, but needs a separate
   embeddings API — can upgrade to this later if keyword search isn't finding the
   right stuff).
-  - Step 1 (in progress, confirm done before continuing): Isaac creating a public
-    Supabase Storage bucket named `mastercam-pdfs`, and running
-    `mastercam_chunks_migration.sql` (saved in repo root) in the SQL Editor — creates
-    a `mastercam_chunks` table with a generated `tsvector` column + GIN index for
-    full-text search, RLS disabled (matches the rest of this app's tables).
-  - Step 2 (not started): build a PDF upload tab — extract text client-side (need to
-    add a PDF-parsing library, e.g. pdfjs-dist, not yet installed), chunk it, upload
-    the original PDF to the `mastercam-pdfs` bucket, insert chunks into
-    `mastercam_chunks`.
+  - Step 1 (DONE): `mastercam-pdfs` public Storage bucket created, `mastercam_chunks`
+    table created (tsvector + GIN index for full-text search, RLS disabled) via
+    `mastercam_chunks_migration.sql`. Verified both exist (empty REST query returned
+    200/[]).
+  - Step 2 (DONE, code pushed, but BLOCKED on a missed SQL step — see below): built
+    src/tabs/MastercamTab.jsx — upload a PDF, extract text client-side (pdfjs-dist,
+    dynamically imported so its ~2MB doesn't bloat every page load), chunk it
+    (~1500 chars, break on paragraph/sentence boundaries), upload original to the
+    bucket, insert chunks into `mastercam_chunks`. Has a document list with chunk
+    counts + remove button.
+  - **Tested with Playwright before asking Isaac to touch it** (set up a local
+    automated browser test — dev server + playwright, installed locally with
+    `--no-save`, not committed; test script at
+    cnc-archive/test_mastercam_upload.mjs, also not committed, uses a throwaway
+    synthetic test PDF generated via Python reportlab, NOT any of Isaac's real
+    personal PDFs). **Caught a real bug before Isaac saw it:**
+    - Storage uploads failed with "new row violates row-level security policy".
+      Gotcha: a Storage bucket's "Public" toggle only covers *reading* files —
+      writes still need their own RLS policy on `storage.objects`, scoped by
+      `bucket_id`. Fix SQL saved at storage_policy_migration.sql (adds
+      select/insert/delete policies scoped to just `mastercam-pdfs`, doesn't touch
+      other buckets like Relicwise's `relicwise-videos`). **Isaac needs to run this
+      — not yet confirmed done.**
+    - Also surfaced in the same test: the `tips` table genuinely does not exist
+      (confirmed via direct REST call, 404) — the migration from the Tip of the Day
+      build earlier got missed somehow, despite being given at the time. It fails
+      silently in the UI (no tip shows, no visible error). Re-sent
+      `tips_migration.sql` contents to Isaac. **Also not yet confirmed done.**
+    - **Next action when resuming:** confirm both SQL pastes are done, then rerun
+      `node test_mastercam_upload.mjs` (needs `npm run dev` running first) to verify
+      the fix before bothering Isaac again.
   - Step 3 (not started): update the `wadsworth-chat` Edge Function to run a
     full-text search against `mastercam_chunks` for the user's question and include
     the top matches as context before calling Claude.
-  - Isaac doesn't have PDFs ready yet — building the pipeline now, he'll add real
-    files once it works.
+  - Isaac doesn't have real PDFs ready yet — building/testing the pipeline with a
+    synthetic one, he'll add real files once it's confirmed working.
 - Tip of the Day: `tips` table, rotates by day-of-year, no cron/internet needed.
   Seeded with 10 general tips; Isaac has his own (messy) advice data he wants
   incorporated eventually — he'll send it when ready, not sent yet.
