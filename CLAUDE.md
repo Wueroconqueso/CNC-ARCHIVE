@@ -114,6 +114,20 @@ complex over time.
       per-query cost. Isaac's stated usage pattern is asking about topics/
       toolpaths/settings rather than lesson numbers by name, which this
       handles well.
+    - **Wadsworth's search scope is Mastercam PDFs ONLY — not the rest of the
+      app.** Asked about this 2026-11-01: M-Codes and G-Codes aren't even in
+      the database to search — they're hardcoded data arrays baked directly
+      into `src/tabs/MCodesTab.jsx` / `GCodesTab.jsx`, not database-backed.
+      Daily notes and tips ARE in the database (`daily_notes`, `tips` tables)
+      but nothing in `wadsworth-chat` queries them either. For a question like
+      "what M-code stops the program," Wadsworth currently answers from its own
+      general trained knowledge (M00/M01 — extremely standard, so it gets it
+      right), NOT from the app's M-Codes tab — so if Isaac ever customizes that
+      tab with his own notes/quirks, Wadsworth won't know about it until this
+      is built. **Deferred, not requested yet.** If/when Isaac wants this: move
+      M-Codes/G-Codes off hardcoded arrays into Supabase tables first (so
+      there's something to search), then extend `search_mastercam_chunks`-style
+      search to cover those tables plus `daily_notes`/`tips` too.
   - **Real PDF ingestion underway (started 2026-10-31):** Isaac's workflow is to
     paste/attach PDFs into the Claude Code chat **one at a time**, and only wants a
     receipt confirmation ("got it" / page count / lesson vs. print) for each —
