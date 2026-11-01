@@ -59,7 +59,7 @@ export default function NotesTab() {
         />
         <button
           onClick={() => setShowForm(!showForm)}
-          style={{ padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14 }}
+          style={{ padding: "8px 16px", background: "#1e3a8a", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 14 }}
         >
           + New Entry
         </button>
@@ -72,7 +72,7 @@ export default function NotesTab() {
             onClick={() => setSelectedCategory(cat)}
             style={{
               padding: "6px 14px", borderRadius: 20, border: "1px solid #ccc", cursor: "pointer", fontSize: 13,
-              background: selectedCategory === cat ? "#2563eb" : "white",
+              background: selectedCategory === cat ? "#1e3a8a" : "white",
               color: selectedCategory === cat ? "white" : "#333",
             }}
           >
@@ -120,7 +120,7 @@ export default function NotesTab() {
           <div key={entry.id} style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <h3 style={{ margin: 0, fontSize: 16 }}>{entry.title}</h3>
-              <span style={{ fontSize: 12, background: "#eff6ff", color: "#2563eb", padding: "2px 10px", borderRadius: 12 }}>{entry.category}</span>
+              <span style={{ fontSize: 12, background: "#eff6ff", color: "#1e3a8a", padding: "2px 10px", borderRadius: 12 }}>{entry.category}</span>
             </div>
             <p style={{ margin: 0, color: "#444", fontSize: 14 }}>{entry.content}</p>
             <p style={{ margin: "8px 0 0", fontSize: 12, color: "#999" }}>{entry.date}</p>

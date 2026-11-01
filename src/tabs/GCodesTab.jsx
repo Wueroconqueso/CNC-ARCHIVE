@@ -35,7 +35,7 @@ export default function GCodesTab() {
                 style={{
                   fontFamily: "ui-monospace, Consolas, monospace",
                   background: "#eff6ff",
-                  color: "#2563eb",
+                  color: "#1e3a8a",
                   padding: "2px 10px",
                   borderRadius: 12,
                   fontSize: 14,

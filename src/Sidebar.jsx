@@ -38,7 +38,7 @@ export default function Sidebar({ active, onSelect }) {
             border: "none",
             cursor: "pointer",
             fontSize: 14,
-            background: active === tab.id ? "#2563eb" : "transparent",
+            background: active === tab.id ? "#1e3a8a" : "transparent",
             color: active === tab.id ? "white" : "#333",
           }}
         >

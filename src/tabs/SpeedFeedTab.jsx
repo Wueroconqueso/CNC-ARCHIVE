@@ -87,7 +87,7 @@ export default function SpeedFeedTab() {
 
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 13, color: "#666" }}>Spindle Speed</div>
-            <div style={{ fontSize: 28, fontWeight: "bold", color: "#2563eb" }}>{rpm ? rpm.toFixed(0) : "—"} RPM</div>
+            <div style={{ fontSize: 28, fontWeight: "bold", color: "#1e3a8a" }}>{rpm ? rpm.toFixed(0) : "—"} RPM</div>
           </div>
 
           <div>

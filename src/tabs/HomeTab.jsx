@@ -86,7 +86,7 @@ export default function HomeTab() {
         style={{
           marginTop: 12,
           padding: "8px 16px",
-          background: "#2563eb",
+          background: "#1e3a8a",
           color: "white",
           border: "none",
           borderRadius: 6,

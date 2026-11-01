@@ -42,14 +42,20 @@ export default function App() {
           zIndex: 20,
           width: 36,
           height: 36,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           borderRadius: 6,
           border: "1px solid #ccc",
           background: "white",
           cursor: "pointer",
-          fontSize: 16,
         }}
       >
-        ☰
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+          <rect width="18" height="2" rx="1" fill="#D4AF37" />
+          <rect y="6" width="18" height="2" rx="1" fill="#D4AF37" />
+          <rect y="12" width="18" height="2" rx="1" fill="#D4AF37" />
+        </svg>
       </button>
 
       {sidebarOpen && (
@@ -74,7 +80,7 @@ export default function App() {
         <Sidebar active={activeTab} onSelect={selectTab} />
       </div>
 
-      <div style={{ padding: "24px 24px 24px 64px", overflowY: "auto", height: "100%", boxSizing: "border-box" }}>
+      <div style={{ padding: "64px 24px 24px 24px", overflowY: "auto", height: "100%", boxSizing: "border-box" }}>
         <ActiveComponent />
       </div>
     </div>

@@ -85,7 +85,7 @@ export default function WadsworthTab() {
                 borderRadius: 10,
                 fontSize: 14,
                 whiteSpace: "pre-wrap",
-                background: m.role === "user" ? "#2563eb" : "white",
+                background: m.role === "user" ? "#1e3a8a" : "white",
                 color: m.role === "user" ? "white" : "#333",
                 border: m.role === "user" ? "none" : "1px solid #e5e7eb",
               }}
@@ -121,7 +121,7 @@ export default function WadsworthTab() {
           disabled={sending}
           style={{
             padding: "0 20px",
-            background: "#2563eb",
+            background: "#1e3a8a",
             color: "white",
             border: "none",
             borderRadius: 6,
