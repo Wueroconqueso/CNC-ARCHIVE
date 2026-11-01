@@ -7,6 +7,7 @@ import GCodesTab from "./tabs/GCodesTab";
 import MCodesTab from "./tabs/MCodesTab";
 import TappingTab from "./tabs/TappingTab";
 import WadsworthTab from "./tabs/WadsworthTab";
+import MastercamTab from "./tabs/MastercamTab";
 
 const TAB_COMPONENTS = {
   wadsworth: WadsworthTab,
@@ -16,6 +17,7 @@ const TAB_COMPONENTS = {
   gcodes: GCodesTab,
   mcodes: MCodesTab,
   tapping: TappingTab,
+  mastercam: MastercamTab,
 };
 
 export default function App() {
