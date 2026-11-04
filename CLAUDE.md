@@ -28,6 +28,42 @@ complex over time.
   searchable by Wadsworth yet. Isaac knows this and said to revisit later,
   not now. **Also pending:** Isaac's personal/messy CNC notes backlog —
   he hasn't sent it yet, no format decided.
+- **2026-11-04 — Wadsworth now searches the whole app, plus the web (build in progress,
+  needs Isaac to run two deploy steps — see below).** Closes the gap noted above.
+  - **G-Codes and M-Codes moved from hardcoded arrays into real tables** (`gcodes`,
+    `mcodes` — same code/definition/example data, plus a `sort_order` column so the tabs
+    display in the original order). `GCodesTab.jsx`/`MCodesTab.jsx` now fetch from
+    Supabase instead of a hardcoded const. This was the prerequisite noted above — nothing
+    hardcoded can be searched/read by the Edge Function.
+  - **wadsworth-chat rewritten** to pull in everything: `gcodes`, `mcodes`, and `tips` are
+    small/bounded, so instead of searching them it just hands Wadsworth the full list every
+    request (cheap, and guarantees it actually knows every code rather than hoping a
+    keyword search ranks the right one to the top). `daily_notes` gets real search instead
+    — it can grow to hundreds of rows over a year — via a new `search_daily_notes()`
+    function, same OR-ranked pattern as `search_mastercam_chunks()` (see the 2026-11-01
+    entry above for why OR instead of strict AND). The Mastercam PDF search is unchanged.
+  - **Web search added** — Claude's server-side `web_search_20260209` tool, capped at
+    `max_uses: 3` per message to bound cost. System prompt tells Wadsworth to prefer
+    Isaac's own app content first and only reach for the web for things not covered by his
+    material (manufacturer spec sheets, control-specific quirks, general lookups). Isaac
+    said up front he may turn this back off later if it gets too expensive to run — if he
+    says to disable it, remove the `tools` array from the Anthropic request body
+    (`supabase/functions/wadsworth-chat/index.ts`) rather than deleting the surrounding
+    plumbing, since that's a one-line, easily-reversible change.
+  - Reply-parsing also fixed in the same rewrite: the old code took only the *first* text
+    block from Claude's response; with web search, replies can interleave multiple text
+    blocks with search-result blocks, so it now joins every text block in order. Added
+    `pause_turn` handling too — multi-step web search can span more than one API turn, so
+    the function now resumes automatically (capped at 3 continuations) instead of cutting
+    the answer short.
+  - **Not yet deployed as of this entry** — needs Isaac to do what he's done for every
+    prior backend change on this project (no CLI access set up here):
+    1. Run `wadsworth_full_search_migration.sql` in the Supabase SQL editor (creates
+       `gcodes`/`mcodes`, loads their data, adds `search_daily_notes()`).
+    2. Paste the new `supabase/functions/wadsworth-chat/index.ts` into the Edge Function
+       editor in the Supabase dashboard and deploy.
+    Verify afterward by asking Wadsworth something only a G-code/M-code/daily-note/web
+    answer could get right, confirming each source actually gets used.
 - **2026-11-04 — personal notes backlog started arriving.** Isaac began sending his own
   course notes (handwritten-style, taken while going through the Mastercam lessons) as
   chat attachments, to be saved for now with the format/home for them figured out
