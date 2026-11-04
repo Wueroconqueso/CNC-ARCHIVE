@@ -28,6 +28,18 @@ complex over time.
   searchable by Wadsworth yet. Isaac knows this and said to revisit later,
   not now. **Also pending:** Isaac's personal/messy CNC notes backlog —
   he hasn't sent it yet, no format decided.
+- **2026-11-04 — personal notes backlog started arriving.** Isaac began sending his own
+  course notes (handwritten-style, taken while going through the Mastercam lessons) as
+  chat attachments, to be saved for now with the format/home for them figured out
+  later. First file: `Lesson_15_and_16_notes.pdf` (his own notes on OptiRough/Waterline/
+  2D contour/pencil toolpath settings, stock models, rest machining, etc. from Lessons
+  15-16) — uploaded as-is to the `mastercam-pdfs` storage bucket under
+  `personal-notes/Lesson_15_and_16_notes.pdf` (cloud, not local-only, so it's backed up).
+  Deliberately **not** ingested into `mastercam_chunks` and **not** shown in any tab yet —
+  these are a different thing from the official lesson PDFs (his own notes/commentary,
+  not the course material itself) and he hasn't said how he wants them organized or
+  surfaced. Just accumulate them in that bucket path as more come in, one at a time,
+  until Isaac decides what to do with them.
 - App restructured: collapsible left-sidebar nav (closed by default, opens via a ☰
   button top-left, closes on picking a tab). Tabs so far: Wadsworth (AI assistant),
   Home (daily note + tip of the day), Equations, Speed & Feed Calculator, G-Codes,
