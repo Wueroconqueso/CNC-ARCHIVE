@@ -64,6 +64,24 @@ complex over time.
        editor in the Supabase dashboard and deploy.
     Verify afterward by asking Wadsworth something only a G-code/M-code/daily-note/web
     answer could get right, confirming each source actually gets used.
+- **2026-11-04 — two ideas floated for later, not started (Isaac was away from his
+  computer, no Supabase access):**
+  1. **Quick-capture "sorting center":** a way to type a learning in on the spot and have
+     it append to one running document, instead of filing it anywhere specific. Format/UI
+     not designed yet — may overlap with the existing daily_notes concept (HomeTab.jsx) or
+     may be its own thing; figure out which when actually building it.
+  2. **Real multi-user sign-in.** Isaac confirmed (when asked) this is **not** just a lock
+     screen for himself — he wants actual separate accounts, each with their own data
+     (starting with notes). This is a real scope jump from "Isaac's personal app": every
+     table that should be per-user (daily_notes, tips, and whatever the sorting-center idea
+     above becomes — Mastercam library and G/M-codes/reference material presumably stay
+     shared) needs a `user_id` column and RLS policies scoped to `auth.uid()`, plus
+     Supabase Auth wired into the app (login screen, session handling) and the Wadsworth
+     Edge Function updated to scope its daily-notes search to the logged-in user. **Needs
+     Isaac at his computer with Supabase dashboard access to even start** — Supabase Auth
+     setup (enabling providers, email templates, etc.) isn't doable from the SQL
+     editor/Edge Function paste workflow alone. Nothing built yet; revisit with him to
+     scope which tables go per-user vs. stay shared before writing any code.
 - **2026-11-04 — personal notes backlog started arriving.** Isaac began sending his own
   course notes (handwritten-style, taken while going through the Mastercam lessons) as
   chat attachments, to be saved for now with the format/home for them figured out
