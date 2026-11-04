@@ -31,8 +31,20 @@ complex over time.
 - App restructured: collapsible left-sidebar nav (closed by default, opens via a ☰
   button top-left, closes on picking a tab). Tabs so far: Wadsworth (AI assistant),
   Home (daily note + tip of the day), Equations, Speed & Feed Calculator, G-Codes,
-  M-Codes, Tapping (blank placeholder). Old multi-entry "Notes" journal removed from
+  M-Codes, Tapping. Old multi-entry "Notes" journal removed from
   nav but code still exists, unused, at src/tabs/NotesTab.jsx.
+- **2026-11-04 — Tapping tab no longer a placeholder:** added the Guhring Tap Drill
+  Sizes & Decimal Equivalents chart (decimal equivalents, UNC/UNF + metric tap drill
+  sizes at 55/65/75% thread, speed/feed key equations). Fetched from guhring.com and
+  re-hosted in the `mastercam-pdfs` storage bucket under a `reference/` path (kept out
+  of the Mastercam lesson DB/listing — it's not in `mastercam_chunks`, so it won't show
+  up in the Mastercam tab or get indexed by Wadsworth's search). Shown as a simple link
+  card ("Open PDF" opens the file in a new tab). Deliberately **not** embedded inline
+  via `<iframe>` — tested in headless Chromium and it rendered blank; iOS Safari is
+  known to not render PDFs inside iframes at all, which would break it on Isaac's phone
+  (the app's PWA install target). The link-card pattern (reused from MastercamTab.jsx)
+  is the reliable cross-device approach — use it again for any other static reference
+  PDF added outside the searchable Mastercam library.
 - Milling-only focus for now (not turning), per Isaac's instruction.
 - **Wadsworth (AI assistant) — built 2026-10-31:**
   - Real chat UI in src/tabs/WadsworthTab.jsx, calls a Supabase Edge Function
