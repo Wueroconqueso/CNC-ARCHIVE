@@ -23,6 +23,15 @@ function chunkText(text) {
   return chunks.filter((c) => c.length > 0);
 }
 
+// A print is a reference/practice blueprint (exercise drawing), not
+// instructional lesson content — identified by the naming convention used
+// throughout the library ("-ex-1a", "-ExA", "-Exercise-1", etc.), rather than
+// by assuming the main lesson file's name always ends right after the lesson
+// number (it doesn't — e.g. "Mill-Lesson-7- New.pdf").
+function isPrint(filename) {
+  return /-ex-|exa|exb|exercise/i.test(filename);
+}
+
 // Orders documents by lesson number (so Lesson 2 comes before Lesson 10,
 // unlike plain alphabetical sorting), with each lesson's exercise prints
 // grouped right after its main file.
@@ -30,8 +39,7 @@ function lessonSortKey(filename) {
   const m = filename.match(/lesson[\s-]*(\d+)([a-z]?)/i);
   const number = m ? parseInt(m[1], 10) : Infinity;
   const suffix = m ? m[2].toUpperCase() : "";
-  const isMainFile = /lesson[\s-]*\d+[a-z]?\.pdf$/i.test(filename);
-  return { number, suffix, isMainFile };
+  return { number, suffix };
 }
 
 function compareDocs(a, b) {
@@ -39,7 +47,9 @@ function compareDocs(a, b) {
   const kb = lessonSortKey(b.filename);
   if (ka.number !== kb.number) return ka.number - kb.number;
   if (ka.suffix !== kb.suffix) return ka.suffix.localeCompare(kb.suffix);
-  if (ka.isMainFile !== kb.isMainFile) return ka.isMainFile ? -1 : 1;
+  const printA = isPrint(a.filename);
+  const printB = isPrint(b.filename);
+  if (printA !== printB) return printA ? 1 : -1;
   return a.filename.localeCompare(b.filename);
 }
 
@@ -180,45 +190,61 @@ export default function MastercamTab() {
 
       {status && <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>{status}</p>}
 
-      <div style={{ marginTop: 24 }}>
-        <h3 style={{ fontSize: 16, marginBottom: 8 }}>Uploaded documents</h3>
-        {loadingDocs && <p style={{ color: "#999", fontSize: 14 }}>Loading...</p>}
-        {!loadingDocs && docs.length === 0 && <p style={{ color: "#999", fontSize: 14 }}>None yet.</p>}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {docs.map((d) => (
-            <div
-              key={d.filename}
+      {loadingDocs && <p style={{ marginTop: 24, color: "#999", fontSize: 14 }}>Loading...</p>}
+      {!loadingDocs && docs.length === 0 && (
+        <p style={{ marginTop: 24, color: "#999", fontSize: 14 }}>None yet.</p>
+      )}
+      {!loadingDocs && docs.length > 0 && (
+        <>
+          <DocList title="Lesson Notes" docs={docs.filter((d) => !isPrint(d.filename))} />
+          <DocList title="Print Parts" docs={docs.filter((d) => isPrint(d.filename))} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function DocList({ title, docs }) {
+  if (docs.length === 0) return null;
+  return (
+    <div style={{ marginTop: 24 }}>
+      <h3 style={{ fontSize: 16, marginBottom: 8 }}>
+        {title} <span style={{ color: "#999", fontWeight: "normal" }}>({docs.length})</span>
+      </h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {docs.map((d) => (
+          <div
+            key={d.filename}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "white",
+              border: "1px solid #e5e7eb",
+              borderRadius: 8,
+              padding: "10px 14px",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 14 }}>{d.filename}</div>
+              <div style={{ fontSize: 12, color: "#999" }}>{d.count} chunks</div>
+            </div>
+            <a
+              href={d.url}
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: "white",
-                border: "1px solid #e5e7eb",
-                borderRadius: 8,
-                padding: "10px 14px",
+                fontSize: 13,
+                color: "#1e3a8a",
+                textDecoration: "none",
+                fontWeight: "bold",
+                whiteSpace: "nowrap",
               }}
             >
-              <div>
-                <div style={{ fontSize: 14 }}>{d.filename}</div>
-                <div style={{ fontSize: 12, color: "#999" }}>{d.count} chunks</div>
-              </div>
-              <a
-                href={d.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: 13,
-                  color: "#1e3a8a",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Open PDF
-              </a>
-            </div>
-          ))}
-        </div>
+              Open PDF
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   );
