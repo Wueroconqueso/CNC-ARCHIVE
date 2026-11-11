@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import NameBadge from "./NameBadge";
+import { getActiveName } from "./identity";
 import HomeTab from "./tabs/HomeTab";
 import EquationsTab from "./tabs/EquationsTab";
 import SpeedFeedTab from "./tabs/SpeedFeedTab";
@@ -23,6 +25,7 @@ const TAB_COMPONENTS = {
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [name, setName] = useState(getActiveName());
   const ActiveComponent = TAB_COMPONENTS[activeTab];
 
   function selectTab(id) {
@@ -80,8 +83,10 @@ export default function App() {
         <Sidebar active={activeTab} onSelect={selectTab} />
       </div>
 
+      <NameBadge name={name} onChange={setName} />
+
       <div style={{ padding: "64px 24px 24px 24px", overflowY: "auto", height: "100%", boxSizing: "border-box" }}>
-        <ActiveComponent />
+        {name ? <ActiveComponent name={name} /> : null}
       </div>
     </div>
   );

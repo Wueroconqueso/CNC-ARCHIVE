@@ -64,24 +64,57 @@ complex over time.
        editor in the Supabase dashboard and deploy.
     Verify afterward by asking Wadsworth something only a G-code/M-code/daily-note/web
     answer could get right, confirming each source actually gets used.
+  - **DONE 2026-11-10/11 — Supabase CLI link set up.** Isaac ran `supabase login`
+    himself (browser OAuth — CLI binary lives at `C:\Users\Isaac\bin\supabase.exe`, not
+    on PowerShell's PATH, so use the full path or Git Bash) and I ran `supabase link
+    --project-ref lwinvwocxtstvyhkicpv` ("Machine Database" project). Confirmed working
+    via `supabase db query --linked` (read) and real migrations/function deploys
+    (write) — both now run directly from the CLI instead of the manual dashboard paste
+    workflow. Added `supabase/.temp/` to `.gitignore` (local link state, machine-specific).
+    **Standing backup rule agreed with Isaac:** before any migration that alters/drops
+    existing data (not needed for purely-additive changes like a new table/column), back
+    it up first. `supabase db dump` needs Docker, which isn't installed here, so the
+    practical method is `supabase db query --linked "select row_to_json(t) from
+    <table> t"` saved to a local JSON file in `backups/` (gitignored).
+  - First two real deploys done this way: the `wadsworth_full_search_migration.sql`
+    (gcodes/mcodes/search_daily_notes — see above) and the wadsworth-chat deploy for
+    multi-user notes (see below). Both verified live, not just assumed to have worked.
 - **2026-11-04 — two ideas floated for later, not started (Isaac was away from his
   computer, no Supabase access):**
   1. **Quick-capture "sorting center":** a way to type a learning in on the spot and have
      it append to one running document, instead of filing it anywhere specific. Format/UI
      not designed yet — may overlap with the existing daily_notes concept (HomeTab.jsx) or
      may be its own thing; figure out which when actually building it.
-  2. **Real multi-user sign-in.** Isaac confirmed (when asked) this is **not** just a lock
-     screen for himself — he wants actual separate accounts, each with their own data
-     (starting with notes). This is a real scope jump from "Isaac's personal app": every
-     table that should be per-user (daily_notes, tips, and whatever the sorting-center idea
-     above becomes — Mastercam library and G/M-codes/reference material presumably stay
-     shared) needs a `user_id` column and RLS policies scoped to `auth.uid()`, plus
-     Supabase Auth wired into the app (login screen, session handling) and the Wadsworth
-     Edge Function updated to scope its daily-notes search to the logged-in user. **Needs
-     Isaac at his computer with Supabase dashboard access to even start** — Supabase Auth
-     setup (enabling providers, email templates, etc.) isn't doable from the SQL
-     editor/Edge Function paste workflow alone. Nothing built yet; revisit with him to
-     scope which tables go per-user vs. stay shared before writing any code.
+  2. **Real multi-user sign-in — scoped down and DONE 2026-11-11, see below.** (Originally
+     floated as real separate accounts/auth; Isaac later clarified what he actually wanted
+     was simpler — see entry below.)
+- **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
+  auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
+  just want their own notes kept separate — not real login/security between them. Built
+  the lightweight version instead of full Supabase Auth:
+  - `daily_notes` restructured: added an `author` text column, backfilled existing rows
+    as "Isaac", and changed the table's uniqueness from `(date)` alone to `(date,
+    author)` so multiple people can each have their own note on the same day
+    (`daily_notes_multiuser_migration.sql`). This was a real structural change to
+    existing data, not additive — backed up first per the new standing rule above.
+  - `search_daily_notes()` now takes an `author_filter` param so Wadsworth only
+    searches the asking person's own notes, never everyone's.
+  - New `src/identity.js` (localStorage get/set) + `src/NameBadge.jsx` (small badge,
+    top-right of every tab, click to change) — first visit prompts for a name once,
+    remembered per-device after that. No password, no real security — anyone can type
+    any name; this matches the trust level Isaac actually wanted for friends using his
+    app casually.
+  - `HomeTab.jsx` and `WadsworthTab.jsx` both take the active name as a prop from
+    `App.jsx`; Wadsworth's Edge Function system prompt now explicitly tells Claude who's
+    asking isn't necessarily Isaac, and scopes daily-note context/search to that person.
+  - **Verified two ways before telling Isaac it was done:** (1) a live curl test with a
+    second fake "TestFriend" author confirmed Wadsworth correctly retrieved that
+    person's own note and correctly told "Isaac" he had no notes on the same topic — no
+    cross-person leakage; (2) a full Playwright browser test (name prompt appears,
+    entering a name saves and persists across reload, the note saves/reloads scoped to
+    that name) — all passed. Both sets of test data cleaned up from the real DB after.
+  - Deployed via the new CLI link (migration + function deploy), not manual dashboard
+    paste — first real use of the new access.
 - **2026-11-04 — personal notes backlog started arriving.** Isaac began sending his own
   course notes (handwritten-style, taken while going through the Mastercam lessons) as
   chat attachments, to be saved for now with the format/home for them figured out

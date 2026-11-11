@@ -3,7 +3,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from "../supabase";
 
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/wadsworth-chat`;
 
-export default function WadsworthTab() {
+export default function WadsworthTab({ name }) {
   const [messages, setMessages] = useState([
     { role: "assistant", text: "Hey, I'm Wadsworth. Ask me about speeds/feeds, G-code, M-code, tapping, or Mastercam." },
   ]);
@@ -30,7 +30,7 @@ export default function WadsworthTab() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${SUPABASE_KEY}`,
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, author: name }),
       });
       const data = await res.json();
 

@@ -22,4 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env 
+.env
+
+# Supabase CLI local link state (project ref, pooler URL) -- machine-specific, not shared
+supabase/.temp/
+
+# Local pre-migration DB backups -- safety copies, not app code
+backups/

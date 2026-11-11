@@ -11,7 +11,7 @@ function dayOfYear() {
   return Math.floor((now - start) / 86400000);
 }
 
-export default function HomeTab() {
+export default function HomeTab({ name }) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,7 +22,12 @@ export default function HomeTab() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase.from("daily_notes").select("content").eq("date", today).maybeSingle();
+      const { data, error } = await supabase
+        .from("daily_notes")
+        .select("content")
+        .eq("date", today)
+        .eq("author", name)
+        .maybeSingle();
       if (error) console.error(error);
       if (!cancelled) {
         setContent(data?.content || "");
@@ -32,7 +37,7 @@ export default function HomeTab() {
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, [today, name]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,14 +60,16 @@ export default function HomeTab() {
     setSaving(true);
     const { error } = await supabase
       .from("daily_notes")
-      .upsert({ date: today, content, updated_at: new Date().toISOString() });
+      .upsert({ date: today, author: name, content, updated_at: new Date().toISOString() });
     if (error) console.error(error);
     setSaving(false);
   }
 
   return (
     <div style={{ maxWidth: 600 }}>
-      <h2 style={{ fontSize: 18, color: "#999", margin: "0 0 16px", fontWeight: "normal" }}>{today}</h2>
+      <h2 style={{ fontSize: 18, color: "#999", margin: "0 0 16px", fontWeight: "normal" }}>
+        {today} — {name}'s note
+      </h2>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

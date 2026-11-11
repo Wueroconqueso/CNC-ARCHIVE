@@ -59,8 +59,11 @@ async function searchMastercamChunks(query, limit = 5) {
 // Same OR-ranked search pattern, against daily_notes.content — unlike the
 // small static tables above, this one can grow to hundreds of rows over a
 // year, so it needs real search rather than a full dump every request. See
-// search_daily_notes() in wadsworth_full_search_migration.sql.
-async function searchDailyNotes(query, limit = 5) {
+// search_daily_notes() in daily_notes_multiuser_migration.sql. Scoped to
+// author_filter -- the app has no real login, just a per-device name (see
+// src/identity.js), so this keeps "my notes" meaning just that person's own
+// entries rather than everyone's.
+async function searchDailyNotes(query, authorFilter, limit = 5) {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/search_daily_notes`, {
       method: "POST",
@@ -69,7 +72,7 @@ async function searchDailyNotes(query, limit = 5) {
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ search_query: query, match_limit: limit }),
+      body: JSON.stringify({ search_query: query, author_filter: authorFilter, match_limit: limit }),
     });
     if (!res.ok) return [];
     return await res.json();
@@ -85,7 +88,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message } = await req.json();
+    const { message, author } = await req.json();
 
     if (!message || typeof message !== "string") {
       return new Response(JSON.stringify({ error: "Missing 'message' in request body." }), {
@@ -96,7 +99,7 @@ Deno.serve(async (req) => {
 
     const [chunks, dailyNoteMatches, gcodes, mcodes, tips] = await Promise.all([
       searchMastercamChunks(message),
-      searchDailyNotes(message),
+      author ? searchDailyNotes(message, author) : Promise.resolve([]),
       fetchTable("gcodes", "sort_order"),
       fetchTable("mcodes", "sort_order"),
       fetchTable("tips", "id"),
@@ -104,13 +107,15 @@ Deno.serve(async (req) => {
 
     let system =
       "You are Wadsworth, a CNC milling assistant built into Isaac's personal CNC Archive app. " +
-      "Isaac is a CNC machinist (mill operator), not a professional developer, focused on milling " +
-      "(not turning) for now. Help with milling questions: speeds/feeds, G-code/M-code, tapping, " +
-      "and Mastercam toolpath questions. Be direct and practical, like a " +
-      "knowledgeable shop-floor colleague, not a generic assistant. Keep answers focused on milling " +
-      "unless Isaac asks about something else.\n\n" +
-      "Prefer Isaac's own app content below (his Mastercam training library, his daily notes, his " +
-      "G-code/M-code reference, his tips) when it's relevant — it reflects his actual setup and " +
+      `Isaac built this app for himself; the person asking right now is "${author || "someone using the app"}" ` +
+      "-- a friend of Isaac's who also uses it sometimes, not necessarily Isaac himself. Isaac is a " +
+      "CNC machinist (mill operator), not a professional developer, focused on milling (not turning) " +
+      "for now. Help with milling questions: speeds/feeds, G-code/M-code, tapping, and Mastercam " +
+      "toolpath questions. Be direct and practical, like a knowledgeable shop-floor colleague, not a " +
+      "generic assistant. Keep answers focused on milling unless asked about something else.\n\n" +
+      "Prefer the app's own content below (its shared Mastercam training library, this person's own " +
+      "daily notes, the shared G-code/M-code reference and tips) when it's relevant — it reflects " +
+      "Isaac's actual setup and " +
       "experience. Use web search for anything current, or not covered by his own material (e.g. a " +
       "specific tool manufacturer's spec sheet, a control-specific quirk, general reference lookups).";
 
@@ -143,12 +148,12 @@ Deno.serve(async (req) => {
 
     if (dailyNoteMatches.length > 0) {
       const context = dailyNoteMatches
-        .map((n) => `From Isaac's daily note (${n.note_date}):\n${n.content}`)
+        .map((n) => `From ${author}'s daily note (${n.note_date}):\n${n.content}`)
         .join("\n\n---\n\n");
       system +=
-        "\n\n--- Isaac's own daily notes that matched this question ---\n" +
-        "Use them if relevant — they're his own past notes, so treat them as reliable first-hand " +
-        "context. Ignore them if they're not actually relevant.\n\n" +
+        `\n\n--- ${author}'s own daily notes that matched this question ---\n` +
+        "Use them if relevant — they're this person's own past notes, so treat them as reliable " +
+        "first-hand context. Ignore them if they're not actually relevant.\n\n" +
         context;
     }
 
