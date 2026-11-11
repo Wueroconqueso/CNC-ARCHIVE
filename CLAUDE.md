@@ -154,11 +154,32 @@ complex over time.
       question only his own notes could answer correctly — it answered grounded in the
       exact numbers from his notes ("half the speed and double the feed... 3 to 5 percent
       of diameter... leave about .003 per side") rather than generic advice.
-    - **Not yet done**: `Lesson_15_and_16_notes.pdf` (the earlier personal-notes file)
-      hasn't been folded into `shop_notes` yet — different source (structured course
-      notes, not a loose braindump), do it as a separate pass when Isaac wants it tackled.
-      Also not done: an in-app tab to browse `shop_notes` (not requested yet — currently
-      only reachable via Wadsworth and the raw table/readable doc).
+    - **DONE 2026-11-11 (same session) — `Lesson_15_and_16_notes.pdf` folded in too.**
+      This file is a different shape — a sequential walkthrough of specific Mastercam
+      toolpaths (OptiRough, Waterline, 2D Contour, Pencil, stock models/rest machining,
+      2D Area Mill, Equal Scallop, Spiral) rather than standalone one-line tips — so it
+      was chunked by toolpath/topic (36 entries) instead of split line-by-line, which
+      would have orphaned steps like "then click green check" from what they refer to.
+      Extracted via `pypdf` (no pandoc on this machine; python-docx handled the other
+      file, pypdf handles PDFs). All 36 rows tagged category `MasterCam / Gibbs Software
+      Notes`, `source_file = 'Lesson_15_and_16_notes.pdf'` (`shop_notes_lesson1516_migration.sql`).
+      **Deliberately NOT ingested into `mastercam_chunks`/shown in the Mastercam tab** —
+      that table/tab is the official course library; mixing in Isaac's own commentary
+      there with no visual distinction would blur which is which (same reasoning already
+      on record from 2026-11-04 for why this file wasn't auto-ingested back then).
+      `shop_notes` now has 351 rows total. Readable doc and cloud-backup copy
+      regenerated from the live table (not just the local pickle) to stay accurate, and
+      now note `_(from Lesson_15_and_16_notes.pdf)_` next to entries from this file.
+    - **DONE 2026-11-11 — new "Shop Notes" tab, so this is visible in the app, not just
+      via Wadsworth.** `src/tabs/ShopNotesTab.jsx`: fetches all `shop_notes` rows,
+      groups into collapsible category sections (collapsed by default, click to expand;
+      auto-expand whatever matches while searching), plus a client-side search box that
+      filters by content text. Added to the sidebar nav (`src/Sidebar.jsx`) and
+      `TAB_COMPONENTS` (`src/App.jsx`) as `shopnotes`. Read-only, no edit/delete — matches
+      the no-delete pattern used elsewhere in this app. **Tested with Playwright before
+      calling it done**: tab opens, "Tapping" category expands and shows the real note
+      text, searching "reamer" correctly filters down to the Reaming category, zero
+      console errors.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
