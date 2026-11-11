@@ -82,12 +82,83 @@ complex over time.
 - **2026-11-04 — two ideas floated for later, not started (Isaac was away from his
   computer, no Supabase access):**
   1. **Quick-capture "sorting center":** a way to type a learning in on the spot and have
-     it append to one running document, instead of filing it anywhere specific. Format/UI
-     not designed yet — may overlap with the existing daily_notes concept (HomeTab.jsx) or
-     may be its own thing; figure out which when actually building it.
+     it append to one running document, instead of filing it anywhere specific. **Now
+     confirmed (2026-11-11) to be the same system as the personal shop notes plan below**
+     — the future "add new things" section described there is this idea, just scoped to
+     append to the structured notes table once it exists.
   2. **Real multi-user sign-in — scoped down and DONE 2026-11-11, see below.** (Originally
      floated as real separate accounts/auth; Isaac later clarified what he actually wanted
      was simpler — see entry below.)
+- **PLAN AGREED 2026-11-11 — personal shop-floor notes system (not yet built, waiting on
+  Isaac to send files).** Isaac has a long personal Word document of CNC notes/advice
+  written over years from real shop-floor experience, which he references constantly and
+  wants brought into the app. He'll send it (and future notes) as chat attachments when
+  he has time. Agreed workflow for each file, once sent:
+  1. **Original copy** — save the file exactly as uploaded, untouched, to Supabase
+     storage (reuse the `mastercam-pdfs` bucket's `personal-notes/` path — already in use
+     for `Lesson_15_and_16_notes.pdf`, see the 2026-11-04 entry above). This is the
+     permanent backup; never edited or deleted.
+  2. **Edited copy, structured** — parse the document and split it into individual
+     discrete entries (one row per distinct tip/lesson-learned), into a new table (name
+     TBD, e.g. `shop_notes`) — same pattern as the existing `tips` table, not a single
+     rewritten blob. This is what makes dedup, per-entry search, and future additions
+     actually work.
+  3. **Dedup** — drop exact-duplicate entries when splitting into rows.
+  4. **Edited copy, readable** — Isaac also wants a second, human-readable cleaned/deduped
+     document (organized, same substance as his original — not AI-reworded domain advice)
+     that he can still open and read top-to-bottom outside the app, in addition to the
+     database rows. Maintain both, not just one.
+  5. **Wadsworth search** — add a `search_shop_notes()` function once the table exists,
+     same OR-ranked full-text search pattern as `search_mastercam_chunks()`/
+     `search_daily_notes()`.
+  6. **Referencing/adding to the app** — Isaac will explicitly tell me when to pull
+     specific info out of these notes to reference or add to other parts of the app
+     (G-Codes/M-Codes/Tips tabs, etc.) — not automatic just because it's ingested.
+  7. **Future, confirmed not needed yet** — an in-app "quick capture" section to type a
+     new learning in on the spot and append it to this same table. This is the same idea
+     as the 2026-11-04 "sorting center" entry above; build it later, same table.
+  - **`Lesson_15_and_16_notes.pdf` folds into this system** — Isaac confirmed (2026-11-11)
+    to process it as the first file under this workflow once building starts, rather than
+    leaving it as an untouched raw file.
+  - **DONE 2026-11-11 — first file processed, same session as the plan above.** Isaac
+    sent `Codex_My_Edit_Official_10-13-26.docx` (893 paragraphs, ~30k characters, years of
+    real shop-floor notes — tapping/drilling/reaming math, material speeds & feeds,
+    G-code/M-code reference, troubleshooting fixes, shop-mindset tips, open questions he'd
+    jotted and never resolved). Processed exactly per the agreed plan:
+    1. **Original** uploaded untouched to the `mastercam-pdfs` bucket at
+       `personal-notes/Codex_My_Edit_Official_10-13-26.docx` (verified 200, correct
+       content-type/length).
+    2. **Parsed into 315 discrete entries** across 20 categories (Tapping 37, Drilling 17,
+       Materials-Plastic 27, Shop Practices & General Notes 23, Open Questions 27, etc.) —
+       split by reading the actual paragraph/blank-line structure (python-docx extraction,
+       no pandoc available on this machine), not a blind line-split. One off-topic
+       paragraph (a recipe/shopping note that had landed in the middle of the doc by
+       accident) was pulled out and flagged to Isaac rather than inserted.
+    3. **Deduped exact repeats** (case/whitespace-insensitive) — caught real duplicates
+       like a Winchester-job G-code block pasted 3 times and a G5.1Q1 definition pasted 4
+       times with minor formatting differences; near-duplicates with different wording
+       (e.g. "tall hole wants a reamer" stated two different ways) were deliberately left
+       as separate entries rather than guessed-merged.
+    4. **New `shop_notes` table** (`shop_notes_migration.sql`: id/category/content/
+       source_file/created_at, RLS + public read/insert policies, GIN tsvector index) —
+       run via the linked Supabase CLI. 315 rows confirmed loaded.
+    5. **`search_shop_notes()`** function added (same OR-ranked full-text pattern as
+       `search_mastercam_chunks`/`search_daily_notes`) and wired into `wadsworth-chat`
+       (not author-scoped — this is Isaac's own shared knowledge base, unlike per-person
+       daily notes). Deployed via CLI.
+    6. **Readable copy**: `shop_notes_organized.md` — same 315 entries grouped under
+       category headings, wording kept verbatim (reorganized, not reworded). Saved both
+       in the repo and as a cloud backup in the same storage bucket
+       (`personal-notes/shop_notes_organized.md`).
+    - **Verified live before calling it done**: asked Wadsworth a reaming speed/feed
+      question only his own notes could answer correctly — it answered grounded in the
+      exact numbers from his notes ("half the speed and double the feed... 3 to 5 percent
+      of diameter... leave about .003 per side") rather than generic advice.
+    - **Not yet done**: `Lesson_15_and_16_notes.pdf` (the earlier personal-notes file)
+      hasn't been folded into `shop_notes` yet — different source (structured course
+      notes, not a loose braindump), do it as a separate pass when Isaac wants it tackled.
+      Also not done: an in-app tab to browse `shop_notes` (not requested yet — currently
+      only reachable via Wadsworth and the raw table/readable doc).
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built

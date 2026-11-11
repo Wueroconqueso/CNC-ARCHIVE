@@ -82,6 +82,29 @@ async function searchDailyNotes(query, authorFilter, limit = 5) {
   }
 }
 
+// Same OR-ranked search pattern, against shop_notes.content — Isaac's own
+// personal shop-floor notes (years of hard-won CNC experience, see
+// shop_notes_migration.sql). Not author-scoped like daily_notes: this is
+// Isaac's own knowledge base, shared context for anyone using the app.
+async function searchShopNotes(query, limit = 8) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/search_shop_notes`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ search_query: query, match_limit: limit }),
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.error("Shop notes search failed:", err);
+    return [];
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -97,9 +120,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const [chunks, dailyNoteMatches, gcodes, mcodes, tips] = await Promise.all([
+    const [chunks, dailyNoteMatches, shopNoteMatches, gcodes, mcodes, tips] = await Promise.all([
       searchMastercamChunks(message),
       author ? searchDailyNotes(message, author) : Promise.resolve([]),
+      searchShopNotes(message),
       fetchTable("gcodes", "sort_order"),
       fetchTable("mcodes", "sort_order"),
       fetchTable("tips", "id"),
@@ -154,6 +178,18 @@ Deno.serve(async (req) => {
         `\n\n--- ${author}'s own daily notes that matched this question ---\n` +
         "Use them if relevant — they're this person's own past notes, so treat them as reliable " +
         "first-hand context. Ignore them if they're not actually relevant.\n\n" +
+        context;
+    }
+
+    if (shopNoteMatches.length > 0) {
+      const context = shopNoteMatches
+        .map((n) => `[${n.note_category}] ${n.content}`)
+        .join("\n\n---\n\n");
+      system +=
+        "\n\n--- Isaac's personal shop-floor notes that matched this question ---\n" +
+        "These are Isaac's own hard-won notes from years on the machines — treat them as reliable, " +
+        "first-hand, shop-specific knowledge. Prefer them over generic advice when they're relevant. " +
+        "Ignore them if they're not actually relevant to the question.\n\n" +
         context;
     }
 
