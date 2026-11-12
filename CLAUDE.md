@@ -305,6 +305,20 @@ complex over time.
         future organized reference PDFs if more get made. **Verified with Playwright**:
         link gone from Home, new tab opens and shows it, PDF still resolves 200, zero
         console errors.
+      - **DONE 2026-11-12, same session — gated to Isaac only.** He wanted the tab
+        "personal to only me" but still cloud-stored, not device-local. Explained the
+        real tradeoff first (same as the daily-notes name selector: this checks whatever
+        name is typed into the free-text identity box, not real auth — anyone who typed
+        "Isaac" there could see it too) and he confirmed "Isaac" is the name he uses.
+        Implemented as a visibility gate, not a storage change (content was already in
+        Supabase): `TABS` entry in `Sidebar.jsx` marked `ownerOnly: true`, filtered out of
+        the rendered list unless the active `name` (case-insensitive, trimmed) equals
+        "isaac"; `App.jsx` computes the same check and falls back to `home` if
+        `activeTab === "tricks"` for a non-owner (covers the edge case of switching
+        identity away while the tab is already open). **Verified with Playwright**: nav
+        item visible as "Isaac", hidden as "Friend"; opening the tab as Isaac then
+        switching the name mid-session correctly bounces back to Home; zero console
+        errors in either path.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built

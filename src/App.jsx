@@ -30,7 +30,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [name, setName] = useState(getActiveName());
-  const ActiveComponent = TAB_COMPONENTS[activeTab];
+  const isOwner = (name || "").trim().toLowerCase() === "isaac";
+  const effectiveTab = activeTab === "tricks" && !isOwner ? "home" : activeTab;
+  const ActiveComponent = TAB_COMPONENTS[effectiveTab];
 
   function selectTab(id) {
     setActiveTab(id);
@@ -84,7 +86,7 @@ export default function App() {
           boxShadow: sidebarOpen ? "2px 0 8px rgba(0,0,0,0.15)" : "none",
         }}
       >
-        <Sidebar active={activeTab} onSelect={selectTab} />
+        <Sidebar active={effectiveTab} onSelect={selectTab} name={name} />
       </div>
 
       <NameBadge name={name} onChange={setName} />
