@@ -285,6 +285,17 @@ complex over time.
       - Delivered via `SendUserFile`, not committed to this repo (it's Isaac's personal
         document, not app code/data) — scripts (`data.js`, `render.js`) live in the
         session scratchpad only, not saved anywhere durable in the project.
+      - **DONE 2026-11-12, same session — also made accessible from the app itself.**
+        Isaac: "I want an accessible PDF from the app." Uploaded the PDF to the existing
+        `mastercam-pdfs` Supabase storage bucket at
+        `personal-notes/CNC_Machining_Notes_Organized.pdf` (public URL, verified 200/
+        application/pdf), and added one plain link on `HomeTab.jsx` — "📄 CNC Machining
+        Notes — Organized (PDF)" — that opens it in a new tab. Deliberately just a link,
+        not a page/tab recreating the document's structure — he'd just said "not tabs
+        like you had it" for this exact content, so the in-app surface stays minimal
+        (one line) and the PDF itself (already verified) does the actual presenting.
+        **Verified with Playwright**: link renders on Home, resolves to a 200
+        `application/pdf` response, zero console errors.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
