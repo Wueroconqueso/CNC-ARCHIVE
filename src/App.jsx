@@ -11,7 +11,6 @@ import TappingTab from "./tabs/TappingTab";
 import WadsworthTab from "./tabs/WadsworthTab";
 import MastercamTab from "./tabs/MastercamTab";
 import ShopNotesTab from "./tabs/ShopNotesTab";
-import NotesArchiveTab from "./tabs/NotesArchiveTab";
 
 const TAB_COMPONENTS = {
   wadsworth: WadsworthTab,
@@ -23,7 +22,6 @@ const TAB_COMPONENTS = {
   tapping: TappingTab,
   mastercam: MastercamTab,
   shopnotes: ShopNotesTab,
-  notesarchive: NotesArchiveTab,
 };
 
 export default function App() {

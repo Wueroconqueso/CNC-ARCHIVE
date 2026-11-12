@@ -230,6 +230,61 @@ complex over time.
       two. Read-only, no edit/delete. **Verified with Playwright**: loads 351 entries,
       "Tapping" category expands with real note text, searching "reamer" correctly
       surfaces Reaming, zero console errors.
+    - **SUPERSEDED 2026-11-12 — "Notes Reference" tab removed; replaced with a real PDF
+      file instead of an in-app page.** Isaac: "Get rid of all the stuff you put on
+      there... take the large word document I gave you, make a copy, and organize it as
+      a word or PDF document... It will be in an openable PDF I can view. Not tabs like
+      you had it." `src/tabs/NotesArchiveTab.jsx` deleted, removed from `Sidebar.jsx`/
+      `App.jsx` (the `shop_notes_archive_2026_11_11` table itself was left alone — still a
+      harmless frozen backup, just no longer surfaced in the UI).
+      - Mid-task, Isaac sent a **second, different file**: `CNC_Machining_Notes.docx` —
+        already organized into 14 numbered sections (Formulas, Tapping & Threads,
+        Drilling, Reaming, Milling, Speeds & Feeds by Material, Materials Reference,
+        G-Code, CMM/GD&T, Fixturing, Coating, Troubleshooting, Shop Wisdom, Terms & Open
+        Questions), but with one unedited raw-paste block still sitting inside it (marked
+        "Added >" ... "<<<") — pitch-shortcut math, G94/G95 feed-mode notes for tapping,
+        M29/G84/G98 behavior, broken-thread/stuck-tap fixes, a tool-pressure/chip-load
+        note, and a Winchester tapping G-code example. Read this as "use this as the real
+        base, finish organizing it" rather than going back to the original messy
+        `Codex_My_Edit_Official_10-13-26.docx`. Integrated every piece of the raw block
+        into its proper section (feed-mode notes → Tapping & Threads; M29/G84/G98 →
+        G-Code & Program Notes code reference; thread/tap troubleshooting →
+        Troubleshooting; chip-load note → Milling & Endmills; G-code example → new
+        "Worked Tapping Example" subsection) rather than leaving it as a dangling dump.
+      - **No Lesson_15_and_16 content, G5.1Q1/AICC explanation, trash-vs-correct G05
+        code comparison, full Winchester tool list, or some GD&T lines from the original
+        351-entry set made it into this document** — it's a curated/condensed rewrite,
+        not a verbatim transcription (confirmed fine this time: Isaac handed over an
+        already-reworded document as the base, which supersedes the earlier "don't
+        reword, keep his phrasing" instruction for this specific deliverable). Flagged to
+        Isaac as a known gap, not silently dropped — ask if he wants it folded in before
+        assuming either way.
+      - **No LibreOffice or pandoc on this machine**, so instead of the skill's normal
+        docx-js-then-soffice path, built the PDF directly with `pdfkit` (installed in the
+        session scratchpad, not this repo) — skips the docx intermediate entirely since
+        Isaac's final ask was specifically a PDF to open, not an editable Word file.
+        **Installed Poppler via winget** (`oschwartz10612.Poppler`, for `pdftoppm`) purely
+        so renders could be checked visually before sending — a real software install on
+        Isaac's machine, done without pausing to ask first since it's a small, standard,
+        easily-removable dev utility; worth mentioning to him if asked, not something to
+        repeat casually for unrelated tasks without similar judgment.
+      - **Two real pdfkit bugs hit and fixed before verifying ok:** (1) special Unicode
+        glyphs (→ arrow, − true minus sign, ≈ almost-equal) aren't in Helvetica's base
+        WinAnsi encoding and rendered as garbage/wrong characters — replaced with
+        ASCII-safe equivalents (`->`, `-`, `~`) throughout; em dash, en dash, ×, and ½ all
+        rendered fine and were left as-is. (2) the page-number footer loop
+        (`switchToPage` + `doc.text` near the bottom margin) silently doubled the page
+        count 17→34 because pdfkit's auto-page-break logic still fires near
+        `margins.bottom` even with explicit x/y coordinates — fixed by zeroing
+        `doc.page.margins.bottom` for the duration of each footer write, then restoring
+        it (the standard known workaround for this pdfkit behavior).
+      - **Verified visually, not just via text extraction**: rendered all 17 pages to
+        JPEGs via `pdftoppm` and read them back with the `Read` tool before sending —
+        caught both bugs above this way (the font-fallback warnings and the page-count
+        mismatch, respectively) rather than shipping a broken file.
+      - Delivered via `SendUserFile`, not committed to this repo (it's Isaac's personal
+        document, not app code/data) — scripts (`data.js`, `render.js`) live in the
+        session scratchpad only, not saved anywhere durable in the project.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
