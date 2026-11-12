@@ -319,6 +319,25 @@ complex over time.
         item visible as "Isaac", hidden as "Friend"; opening the tab as Isaac then
         switching the name mid-session correctly bounces back to Home; zero console
         errors in either path.
+      - **CHANGED AGAIN 2026-11-12, same session — tab visible to everyone, content
+        scoped per-author instead.** Isaac reconsidered: "I want that tab to show up for
+        everyone. But I want what's in it to only be visible to the person's name who put
+        the info in there." So the nav-level owner gate from the previous entry was
+        reverted (`ownerOnly` removed from `Sidebar.jsx`, `App.jsx`'s `effectiveTab`/
+        `isOwner` fallback removed) — everyone sees and can open "Tricks of the Trade"
+        now. The actual scoping moved into the data: new `tricks_of_the_trade` table
+        (`tricks_of_the_trade_migration.sql`: id/author/label/url/created_at, RLS +
+        public read/insert policies — same lightweight no-real-auth pattern as
+        `daily_notes`), seeded with Isaac's existing PDF link
+        (`author='Isaac'`). `TricksOfTheTradeTab.jsx` rewritten to query this table
+        filtered by `ilike("author", name)` (the active free-text identity name) instead
+        of a hardcoded link, with the subtitle "Notes from personal experience" (Isaac's
+        exact wording) and an empty state ("Nothing here yet for {name}") for anyone with
+        no rows of their own. There is still no in-app "add a doc" form — new entries get
+        added the same way `shop_notes` rows do, via SQL migration when Isaac (or
+        whoever) tells me what to add and under which name. **Verified with Playwright**:
+        both "Isaac" and "Friend" see the nav item and can open the tab; Isaac sees his
+        PDF link, Friend sees the empty state instead; zero console errors for either.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built

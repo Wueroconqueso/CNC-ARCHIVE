@@ -8,12 +8,10 @@ const TABS = [
   { id: "tapping", label: "Tapping" },
   { id: "mastercam", label: "Mastercam" },
   { id: "shopnotes", label: "Shop Notes" },
-  { id: "tricks", label: "Tricks of the Trade", ownerOnly: true },
+  { id: "tricks", label: "Tricks of the Trade" },
 ];
 
-export default function Sidebar({ active, onSelect, name }) {
-  const isOwner = (name || "").trim().toLowerCase() === "isaac";
-  const visibleTabs = TABS.filter((tab) => !tab.ownerOnly || isOwner);
+export default function Sidebar({ active, onSelect }) {
   return (
     <div
       style={{
@@ -28,7 +26,7 @@ export default function Sidebar({ active, onSelect, name }) {
       <div style={{ fontWeight: "bold", fontSize: 14, padding: "0 8px 12px", color: "#888" }}>
         CNC ARCHIVE
       </div>
-      {visibleTabs.map((tab) => (
+      {TABS.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onSelect(tab.id)}
