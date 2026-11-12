@@ -217,6 +217,19 @@ complex over time.
       the .docx. Lightly reformatted into a consistent "X tap - drill Y" line per pair
       since this category is explicitly meant to be a lookup chart, but no values invented
       — every pair traces to an exact line in his notes.
+    - **DONE 2026-11-12 — readable/organized copy made viewable in the app too.** Isaac
+      asked to see "the copy of the copy... where you kind of cleaned up the paper and
+      organized it" (the `shop_notes_organized.md` deliverable) — first ask was answered
+      with "In the app", so this isn't a file send, it's a new in-app view. Added
+      `src/tabs/NotesArchiveTab.jsx` ("Notes Reference" in the sidebar): same
+      collapsible-category/search UI as the pre-pivot ShopNotesTab, but reads from
+      `shop_notes_archive_2026_11_11` (the frozen snapshot of the 351 auto-categorized
+      entries, RLS now enabled with a public read policy) instead of the live
+      `shop_notes` table. Clearly separate from "Shop Notes" (his own hand-built
+      categories) — the tab's subtitle says so explicitly to avoid confusion between the
+      two. Read-only, no edit/delete. **Verified with Playwright**: loads 351 entries,
+      "Tapping" category expands with real note text, searching "reamer" correctly
+      surfaces Reaming, zero console errors.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
