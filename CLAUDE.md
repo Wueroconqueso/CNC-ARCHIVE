@@ -606,3 +606,13 @@ complex over time.
 
 ## Notes
 (Add deeper technical notes, decisions, and gotchas here as they come up.)
+
+- **2026-11-12:** Added a second entry to "Tricks of the Trade" for Isaac — the original
+  unorganized rough-draft document (`Codex_My_Edit_Official_10-13-26.docx`, the file the
+  drill-to-tap data and the PDF were ultimately built from), uploaded as-is (unedited) to
+  Supabase storage (`mastercam-pdfs/personal-notes/Codex_My_Edit_Official_Rough_Draft.docx`)
+  and added as a row in `tricks_of_the_trade` via `tricks_of_the_trade_add_rough_draft.sql`.
+  Isaac wanted an editable (Word, not PDF) copy of this doc accessible the same way the
+  organized PDF already was — so both now show up as separate links under his name in the
+  tab: the organized PDF and this raw .docx. Verified live via Playwright (both links
+  render under Isaac, zero console errors).
