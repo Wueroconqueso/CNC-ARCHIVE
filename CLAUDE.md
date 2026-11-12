@@ -171,15 +171,42 @@ complex over time.
       regenerated from the live table (not just the local pickle) to stay accurate, and
       now note `_(from Lesson_15_and_16_notes.pdf)_` next to entries from this file.
     - **DONE 2026-11-11 — new "Shop Notes" tab, so this is visible in the app, not just
-      via Wadsworth.** `src/tabs/ShopNotesTab.jsx`: fetches all `shop_notes` rows,
-      groups into collapsible category sections (collapsed by default, click to expand;
-      auto-expand whatever matches while searching), plus a client-side search box that
-      filters by content text. Added to the sidebar nav (`src/Sidebar.jsx`) and
-      `TAB_COMPONENTS` (`src/App.jsx`) as `shopnotes`. Read-only, no edit/delete — matches
-      the no-delete pattern used elsewhere in this app. **Tested with Playwright before
-      calling it done**: tab opens, "Tapping" category expands and shows the real note
-      text, searching "reamer" correctly filters down to the Reaming category, zero
-      console errors.
+      via Wadsworth.** (Superseded same day — see the reset entry directly below. Keeping
+      this paragraph for history: original version auto-grouped into my own 20 invented
+      categories; Isaac said that wasn't his intention.)
+  - **PIVOT 2026-11-11 (same session) — reset to user-created categories, not
+    auto-categorization.** Isaac: "I like what you did but that wasn't my intention... I
+    like the tab down idea... but get rid of all the tabs you created, like the drop down
+    menus. And instead give me a button to create new drop down menus. I can create them
+    and over time tell you one by one what to put in there." He wants to build his own
+    taxonomy by hand, dictating content category-by-category, not have me auto-sort his
+    notes into categories I invented.
+    - **Nothing was lost.** The 351 auto-categorized rows were moved to
+      `shop_notes_archive_2026_11_11` (`create table ... as table shop_notes`) before
+      truncating the live `shop_notes` table — recoverable if ever needed. The original
+      `.docx`/`.pdf` backups in Supabase storage and `shop_notes_organized.md` (readable
+      doc, still organized under the old categories) are untouched too — nothing here
+      overwrites those.
+    - **New `shop_note_categories` table** (`shop_notes_reset_migration.sql`: id/name
+      unique/created_at, RLS + public read/insert/delete policies) — this is the list of
+      Isaac's own category names, created empty, populated only via the app button.
+    - **`shop_notes` table kept** (same schema/policies/search function as before,
+      `search_shop_notes()` still wired into Wadsworth) but now starts empty — rows only
+      get added when Isaac tells me what to file under which category.
+    - **`ShopNotesTab.jsx` rewritten**: no hardcoded category list anymore — categories
+      come live from `shop_note_categories`. Kept the collapsible-dropdown UI pattern
+      Isaac said he liked. Added a "+ New Category" button (inline form, inserts into
+      `shop_note_categories`) and a small "×" to delete a category. Each category shows
+      "No notes in here yet" until Isaac dictates content for it. Search box only shows
+      once at least one category exists.
+    - **Verified with Playwright before calling it done**: tab loads with "No categories
+      yet" + the button; creating "Reaming" via the button makes it appear immediately;
+      expanding it shows "No notes in here yet"; zero console errors. Test category
+      deleted after verifying.
+    - **How new content gets added going forward**: Isaac creates a category via the
+      button in the app; he then tells me (in chat) what to put in it; I insert rows into
+      `shop_notes` with that `category` value via SQL migration, same as before — there is
+      no in-app "add note" form, only category creation is self-serve.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
