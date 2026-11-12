@@ -207,6 +207,16 @@ complex over time.
       button in the app; he then tells me (in chat) what to put in it; I insert rows into
       `shop_notes` with that `category` value via SQL migration, same as before — there is
       no in-app "add note" form, only category creation is self-serve.
+    - **First real use, same session (2026-11-12): "Best drill to tap ratio"** — Isaac
+      created this category via the button, then asked to pull the actual drill/tap chart
+      out of the original Word doc (`shop_notes_drilltap_migration.sql`, 10 rows): the
+      "Taps" section chart (4-40/6-32/8-32/1/4-20/M3 form & cut taps with their drill
+      sizes), plus 2-56 and 0-80 pairs that were scattered elsewhere in the doc (tool list,
+      "List of taps and drills" line). Pulled from `shop_notes_raw.txt` (the full raw
+      extraction kept in the scratchpad from the original ingestion), not re-parsed from
+      the .docx. Lightly reformatted into a consistent "X tap - drill Y" line per pair
+      since this category is explicitly meant to be a lookup chart, but no values invented
+      — every pair traces to an exact line in his notes.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
