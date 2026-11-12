@@ -616,3 +616,12 @@ complex over time.
   organized PDF already was — so both now show up as separate links under his name in the
   tab: the organized PDF and this raw .docx. Verified live via Playwright (both links
   render under Isaac, zero console errors).
+- **FIXED 2026-11-12:** the .docx link above was forcing a download instead of opening
+  in-browser like the PDF — Isaac wanted the same click-to-view behavior for both.
+  Browsers can render PDFs natively but never Word files, so a direct link always
+  downloads regardless of hosting. Fixed in `TricksOfTheTradeTab.jsx` with a `viewUrl()`
+  helper that routes any `.doc`/`.docx` link through Microsoft's free Office Online
+  viewer (`view.officeapps.live.com/op/view.aspx?src=<url>`) so it opens rendered in a
+  new tab instead of downloading; PDF links pass through unchanged. Applies to any
+  future Word doc added to this table, not just this one. Verified live (correct
+  wrapped href generated, viewer URL returns 200, zero console errors).

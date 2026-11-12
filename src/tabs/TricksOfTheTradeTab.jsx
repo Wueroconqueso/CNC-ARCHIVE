@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 
+function viewUrl(url) {
+  if (/\.docx?$/i.test(url)) {
+    return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 export default function TricksOfTheTradeTab({ name }) {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +47,7 @@ export default function TricksOfTheTradeTab({ name }) {
         {docs.map((d) => (
           <a
             key={d.id}
-            href={d.url}
+            href={viewUrl(d.url)}
             target="_blank"
             rel="noopener noreferrer"
             style={{
