@@ -8,6 +8,7 @@ const TABS = [
   { id: "tapping", label: "Tapping" },
   { id: "mastercam", label: "Mastercam" },
   { id: "shopnotes", label: "Shop Notes" },
+  { id: "tricks", label: "Tricks of the Trade" },
 ];
 
 export default function Sidebar({ active, onSelect }) {

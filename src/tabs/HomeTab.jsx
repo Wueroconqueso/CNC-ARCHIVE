@@ -118,28 +118,6 @@ export default function HomeTab({ name }) {
           <p style={{ margin: 0, fontSize: 14, color: "#333" }}>{tip}</p>
         </div>
       )}
-
-      <a
-        href="https://lwinvwocxtstvyhkicpv.supabase.co/storage/v1/object/public/mastercam-pdfs/personal-notes/CNC_Machining_Notes_Organized.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          marginTop: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          background: "#f9fafb",
-          border: "1px solid #e5e7eb",
-          borderRadius: 8,
-          padding: 14,
-          textDecoration: "none",
-          color: "#1e3a8a",
-          fontSize: 14,
-          fontWeight: "bold",
-        }}
-      >
-        📄 CNC Machining Notes — Organized (PDF)
-      </a>
     </div>
   );
 }

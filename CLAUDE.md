@@ -296,6 +296,15 @@ complex over time.
         (one line) and the PDF itself (already verified) does the actual presenting.
         **Verified with Playwright**: link renders on Home, resolves to a 200
         `application/pdf` response, zero console errors.
+      - **DONE 2026-11-12, same session — moved to its own tab, "Tricks of the Trade".**
+        Isaac liked the link but wanted it off Home and in its own tab; asked me for
+        naming options (AskUserQuestion: Documents / Notes PDF / Reference) and picked
+        his own name instead. Removed the link block from `HomeTab.jsx`, added
+        `src/tabs/TricksOfTheTradeTab.jsx` (same single link, same Supabase storage URL)
+        registered as `tricks` in `Sidebar.jsx`/`App.jsx`. This is the natural home for
+        future organized reference PDFs if more get made. **Verified with Playwright**:
+        link gone from Home, new tab opens and shows it, PDF still resolves 200, zero
+        console errors.
 - **DONE 2026-11-11 — per-person daily notes via a free-text name selector (not real
   auth).** Isaac clarified the actual need: "a few friends" use the app sometimes and
   just want their own notes kept separate — not real login/security between them. Built
