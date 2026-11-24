@@ -625,3 +625,58 @@ complex over time.
   new tab instead of downloading; PDF links pass through unchanged. Applies to any
   future Word doc added to this table, not just this one. Verified live (correct
   wrapped href generated, viewer URL returns 200, zero console errors).
+- **PAUSED 2026-11-14 ("we'll come back to this"):** an "Add a note" bar on Tricks of
+  the Trade that prepends typed text as a new line at the top of Isaac's editable Word
+  doc, verbatim, no AI rewording. Built and working: `src/docxAppend.js` (JSZip-based,
+  inserts a raw `<w:p>` right after `<w:body>` in `word/document.xml`, nothing else
+  touched) and the input bar in `TricksOfTheTradeTab.jsx`. **Blocked on one DB
+  permission**, sitting in `storage_update_policy.sql` (adds a public UPDATE policy on
+  the `mastercam-pdfs` storage bucket — it currently only has SELECT/INSERT/DELETE, no
+  UPDATE, so the browser can't overwrite the file to add the line). A safety check
+  stopped me from running that SQL myself since it's a real permission change (makes the
+  bucket fully public-writable, not just readable/insertable/deletable) — needs Isaac's
+  explicit yes. Tested safely against a disposable copy before hitting that wall; nothing
+  in Isaac's real files was touched. All of this is uncommitted on disk, not pushed, so
+  the live app is unaffected — pick this back up by running `storage_update_policy.sql`
+  (with Isaac's OK) and verifying with a fresh disposable-copy test before using it on
+  the real document.
+
+## Speed & Feed Calculator upgrade (2026-11-24)
+Rebuilt from a one-directional single-material-preset calculator into a full bidirectional
+one per Isaac's request: "fill out all or as little as possible until it gives you a rough
+number."
+- **`src/sfSolver.js`** — the actual math, two real equations (RPM = SFM×12/(π×D); IPM =
+  RPM×IPT×Flutes), solved for whichever variable is missing via a few iterative passes
+  (solving one can unlock the other since they share RPM). Fully deterministic/transparent
+  on purpose — no hidden model, just the two formulas a machinist already knows.
+- **`src/data/speedFeedData.js`** — workpiece material SFM/IPT ranges, tool material and
+  coating SFM multipliers, operation-type Ap/Ae-of-diameter guidance, and the "Common Tool
+  Preset" dropdown.
+  - **YG-1 ALU-POWER HPC (wrought + cast aluminum), 3-flute** — real verified numbers from
+    YG-1's own published chart (yg1usa.com, slotting condition). The PDF's text extraction
+    came out with rows shifted by one line (SFM/IPT/RPM/IPM labels didn't line up with their
+    values); reconstructed the true row order by cross-checking every value against the
+    RPM=SFM×12/(π×D) and IPM=RPM×IPT×Flutes formulas until they all agreed — high confidence,
+    not guessed.
+  - **Garr TISINOS-PRO (Isaac said "Tisinos" — confirmed via Garr's own site filter that
+    this is a real Garr coating name, not a mis-dictation)** — coating name and general
+    lineup confirmed from garrtool.com's knowledge base, but **no real SFM/IPT numbers**:
+    Garr's speeds-and-feeds PDFs are bot-gated (returned an HTML gate page, not the PDF, even
+    via direct curl with a browser user-agent) and their online Technical Advisor
+    (garrtool.com/calc) is JS-driven and unreadable by a fetch. This preset uses a generic
+    coated-carbide multiplier instead, clearly labeled in the UI as an estimate — flagged
+    honestly rather than inventing Garr-specific numbers. If Isaac can get real numbers from
+    Garr directly (catalog, distributor, or the calculator run by hand), swap them into the
+    `garr_tisinos_steel` preset in `speedFeedData.js`.
+  - Other coating multipliers (TiN, TiCN, TiAlN, AlTiN, AlCrN, Diamond/CVD, ALUMASTAR/TiB2)
+    are general machining-industry guidance, not any one manufacturer's published data.
+- **Depth of Cut card** — RDOC/ADOC inputs with %diameter readout, an Operation dropdown
+  (Slotting / Side Cutting / Side Cutting HSM / Profiling) suggesting typical Ap/Ae per the
+  YG-1 chart's own categories, and a radial chip-thinning calculator (standard formula:
+  factor = 1/√(1−(1−2×RDOC/D)²)) showing how much faster you could feed at a given radial
+  engagement while still hitting the same real chip thickness.
+  Verified live via Playwright: default no-input state correctly computes from material
+  midpoints (6112 RPM / 55.00 IPM at the default 0.5" dia, 2-flute, aluminum-wrought
+  settings), YG-1 preset snaps to the nearest chart diameter and shows the exact published
+  value with a source note, Garr preset shows the estimate warning, chip-thinning section
+  appears correctly when RDOC is entered, zero console errors.
