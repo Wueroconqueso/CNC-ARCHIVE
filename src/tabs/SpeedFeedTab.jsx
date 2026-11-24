@@ -99,24 +99,30 @@ export default function SpeedFeedTab() {
     };
   }, [preset, diameter, workpieceMaterial, toolMaterial, coating]);
 
-  const solved = useMemo(() => {
-    const knowns = {
-      diameter: numOrNull(diameter),
-      flutes: numOrNull(flutes),
-      sfm: numOrNull(sfmInput) ?? suggestion.sfm,
-      rpm: numOrNull(rpmInput),
-      ipt: numOrNull(iptInput) ?? suggestion.ipt,
-      ipm: numOrNull(ipmInput),
-    };
-    return solveSpeedsAndFeeds(knowns);
-  }, [diameter, flutes, sfmInput, rpmInput, iptInput, ipmInput, suggestion]);
-
-  const opSuggestion = OPERATIONS[operation];
   const d = numOrNull(diameter);
   const rdocVal = numOrNull(rdoc);
   const adocVal = numOrNull(adoc);
+  // Chip thinning only depends on RDOC + diameter, so it's safe to fold
+  // straight into the IPT the solver uses — RDOC then drives the Results
+  // feed rate automatically instead of sitting in its own separate note.
   const thinningFactor = chipThinningFactor(rdocVal, d);
-  const thinnedIpt = thinningFactor && solved.ipt != null ? solved.ipt * thinningFactor : null;
+
+  const solved = useMemo(() => {
+    const baseIpt = numOrNull(iptInput) ?? suggestion.ipt;
+    const effectiveIpt = thinningFactor && baseIpt != null ? baseIpt * thinningFactor : baseIpt;
+    const knowns = {
+      diameter: d,
+      flutes: numOrNull(flutes),
+      sfm: numOrNull(sfmInput) ?? suggestion.sfm,
+      rpm: numOrNull(rpmInput),
+      ipt: effectiveIpt,
+      ipm: numOrNull(ipmInput),
+    };
+    return solveSpeedsAndFeeds(knowns);
+  }, [d, flutes, sfmInput, rpmInput, iptInput, ipmInput, suggestion, thinningFactor]);
+
+  const opSuggestion = OPERATIONS[operation];
+  const baseIptForDisplay = numOrNull(iptInput) ?? suggestion.ipt;
 
   return (
     <div>
@@ -280,15 +286,20 @@ export default function SpeedFeedTab() {
           />
           {d && rdocVal != null && <div style={hintStyle}>{fmt((rdocVal / d) * 100, 0)}% of diameter</div>}
 
-          {thinningFactor && thinnedIpt != null && (
+          {thinningFactor && baseIptForDisplay != null && (
             <div style={{ marginTop: 12, paddingTop: 8, borderTop: "1px solid #e5e7eb" }}>
-              <div style={{ fontSize: 13, color: "#666" }}>Chip thinning</div>
+              <div style={{ fontSize: 13, color: "#666" }}>Chip thinning — already applied to Results</div>
               <div style={{ fontSize: 13 }}>
-                At that radial depth, the real chip is thinner than programmed. To still hit the target chip load, you could
-                program up to <b>{fmt(thinnedIpt, 4)} in/tooth</b> ({thinningFactor.toFixed(2)}× factor) instead of {fmt(solved.ipt, 4)}.
+                At that radial depth, the real chip is thinner than programmed, so the Feed Rate above has been bumped up
+                ({thinningFactor.toFixed(2)}× factor: {fmt(baseIptForDisplay, 4)} → <b>{fmt(solved.ipt, 4)} in/tooth</b>) to still
+                hit the target chip load.
               </div>
             </div>
           )}
+          <div style={hintStyle}>
+            ADOC is informational only right now — it doesn't feed into any calculation here (axial depth affects horsepower/
+            deflection, not chip load directly).
+          </div>
         </div>
       </div>
     </div>
